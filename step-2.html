@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Import center – Upload file</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css?v=10">
+<link rel="stylesheet" href="flow.css?v=10">
+<style>
+  :root {
+    --tapio-green: #2d5c4f;
+    --tapio-info-fill: #e3f3f6;
+  }
+
+  /* Template row */
+  .template-scroll { overflow-x: auto; border-radius: 6px; }
+  .template {
+    display: flex; height: 64px; min-width: 640px; overflow: hidden;
+    background: var(--tapio-blue-gray); border: 1px solid var(--tapio-frost-gray); border-radius: 6px;
+    box-shadow: var(--shadow-xs);
+  }
+  .template > div { display: flex; align-items: center; padding: 16px; border-right: 1px solid var(--tapio-frost-gray); font-size: 16px; line-height: 24px; white-space: nowrap; }
+  .template .t-name { flex: 1 0 0; min-width: 0; }
+  .template .t-tags { flex: 1 0 0; min-width: 0; padding: 0; border-right: 0; }
+  .template .t-tags span { flex: 1 0 0; min-width: 0; height: 100%; display: flex; align-items: center; justify-content: center; padding: 16px; border-right: 1px solid var(--tapio-frost-gray); }
+  .template .t-tags span:last-child { flex: none; }
+  .template .t-action { border-right: 0; }
+  .eye-btn {
+    width: 32px; height: 32px; padding: 8px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); box-shadow: var(--shadow-xs);
+  }
+  .eye-btn .on { display: none; }
+  .eye-btn:hover, .eye-btn[aria-pressed="true"] { background: var(--tapio-dark-navy); }
+  .eye-btn:hover .off, .eye-btn[aria-pressed="true"] .off { display: none; }
+  .eye-btn:hover .on, .eye-btn[aria-pressed="true"] .on { display: block; }
+
+  /* Instructions */
+  .instructions { display: flex; flex-direction: column; gap: 16px; }
+  .instr-list { display: flex; flex-direction: column; gap: 8px; }
+  .instr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 4px 0; font-size: 14px; line-height: 20px; }
+  .instr.tall { padding: 6px 0; }
+  .instr a {
+    margin-left: 4px; color: var(--tapio-dark-navy); font-weight: 500; text-decoration: none;
+    border-bottom: 1px solid var(--tapio-dark-navy);
+  }
+  .info-banner {
+    display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    background: var(--tapio-info-fill); border-radius: 8px;
+    font-size: 14px; line-height: 20px;
+  }
+
+  /* Upload */
+  .upload {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    min-height: 84px; padding: 15px 32px; cursor: pointer;
+    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 4px;
+    text-align: center; transition: border-color .15s, background .15s;
+  }
+  .upload:hover, .upload:focus-within { border-color: var(--tapio-midnight-blue); }
+  .upload.drag { border-color: var(--tapio-dark-navy); background: var(--tapio-powder-blue); }
+  .upload strong { font-size: 16px; line-height: 24px; font-weight: 500; }
+  .upload small { font-size: 14px; line-height: 20px; color: var(--tapio-charcoal-blue); }
+  .upload input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .file {
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: 84px; padding: 15px 32px;
+    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 4px;
+  }
+  .file-name { font-size: 20px; line-height: 28px; font-weight: 500; }
+  .file-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 14px; line-height: 20px; color: var(--tapio-charcoal-blue); }
+  .file-meta i { width: 2px; height: 2px; border-radius: 1px; background: var(--tapio-charcoal-blue); }
+
+  .t-actions { display: flex; }
+  .t-actions .eye-btn:has(+ .dl-btn:not([hidden])) { border-radius: 8px 0 0 8px; }
+  .dl-btn {
+    width: 32px; height: 32px; padding: 8px; display: flex; align-items: center; justify-content: center;
+    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-left: 0; border-radius: 0 8px 8px 0;
+    box-shadow: var(--shadow-xs);
+  }
+  .dl-btn:hover { background: var(--tapio-powder-blue); }
+
+  /* ---------- Template's excel file modal ---------- */
+  .xl-head { padding: 32px 32px 15px; flex-direction: column; align-items: stretch; gap: 8px; }
+  .xl-head .xl-title { display: flex; align-items: center; justify-content: space-between; }
+  .xl-step { font-size: 16px; line-height: 24px; font-weight: 500; }
+  .xl-desc { font-size: 16px; line-height: 24px; color: var(--tapio-charcoal-blue); }
+  .xl-body { padding: 0 32px 24px; display: flex; flex-direction: column; gap: 24px; }
+  .xl-heading {
+    display: flex; align-items: center; gap: 4px; padding: 8px 0 15px; border-bottom: 1px solid var(--tapio-frost-gray);
+    font-size: 16px; line-height: 24px; font-weight: 500;
+  }
+  .xl-cols { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(9, auto); gap: 8px; padding: 0 16px; }
+  .xl-cols label { display: flex; align-items: center; gap: 16px; font-size: 16px; line-height: 24px; font-weight: 500; cursor: pointer; }
+  .xl-cols .checkbox { margin: 0; flex-shrink: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips:empty::before { content: attr(data-empty); font-size: 14px; line-height: 20px; color: var(--tapio-charcoal-blue); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;
+    background: var(--tapio-white); border: 2px solid var(--c, var(--tapio-frost-gray)); border-radius: 6px;
+    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--tapio-deep-indigo); white-space: nowrap;
+  }
+  button.chip:hover { background: color-mix(in srgb, var(--c, var(--tapio-frost-gray)) 12%, var(--tapio-white)); }
+  button.chip[aria-pressed="true"] { background: color-mix(in srgb, var(--c, var(--tapio-frost-gray)) 22%, var(--tapio-white)); }
+  .chip.removable { padding-right: 4px; }
+  .chip-x { width: 14px; height: 14px; padding: 2px; border-radius: 3px; display: flex; }
+  .chip-x:hover { background: var(--tapio-frost-gray); }
+  .chip-x img { width: 10px; height: 10px; }
+  .xl-search {
+    display: flex; align-items: center; gap: 4px; height: 40px; padding: 8px;
+    border: 1px solid var(--tapio-frost-gray); border-radius: 6px; box-shadow: var(--shadow-xs); font-size: 16px; line-height: 24px;
+  }
+  .xl-search:focus-within { border-color: var(--tapio-midnight-blue); }
+  .xl-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; color: var(--tapio-deep-indigo); }
+  .xl-search input::placeholder { color: var(--tapio-charcoal-blue); opacity: 1; }
+  .xl-tabs { display: flex; gap: 16px; height: 56px; overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--tapio-frost-gray); scrollbar-width: thin; }
+  .xl-tab {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0; height: 55px; border-bottom: 2px solid transparent;
+    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--tapio-charcoal-blue); white-space: nowrap;
+  }
+  .xl-tab[aria-selected="true"] { color: var(--tapio-deep-indigo); border-bottom-color: var(--tapio-dark-navy); }
+  .xl-tab i { width: 8px; height: 8px; border-radius: 4px; background: var(--c); }
+  .xl-foot { justify-content: space-between; }
+  .xl-foot .right { display: flex; gap: 16px; margin-left: auto; }
+
+  /* ---------- Column mapping ---------- */
+  .map-row { display: grid; grid-template-columns: 1fr 48px 1fr; }
+  .map-row > div {
+    height: 64px; padding: 0 16px; display: flex; align-items: center;
+    border-bottom: 1px solid var(--tapio-frost-gray);
+  }
+  .map-row:last-child > div { border-bottom: 0; }
+  .map-head { font-weight: 600; color: var(--tapio-charcoal-blue); gap: 4px; }
+  .map-label { flex-direction: column; align-items: flex-start !important; justify-content: center; gap: 4px; }
+  .map-label .name { display: flex; align-items: center; gap: 4px; font-size: 16px; line-height: 24px; font-weight: 500; white-space: nowrap; }
+  .map-label .crit { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--tapio-red); }
+  .map-label .crit.ok { color: var(--tapio-green); }
+  .map-arrow { justify-content: center; }
+
+  .select { position: relative; width: 100%; }
+  .select-btn {
+    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 8px; text-align: left;
+    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 8px;
+    box-shadow: var(--shadow-xs);
+    font-size: 16px; line-height: 24px; color: var(--tapio-charcoal-blue);
+  }
+  .select-btn.filled { color: var(--tapio-deep-indigo); }
+  .select-btn:focus-visible, .select.open .select-btn { outline: none; border-color: var(--tapio-midnight-blue); }
+  .select.open .select-btn img { transform: rotate(180deg); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 768px) {
+    .file { padding: 15px 16px; gap: 12px; }
+    .file-name { font-size: 16px; line-height: 24px; word-break: break-all; }
+    .upload { padding: 15px 16px; }
+  }
+  @media (max-width: 640px) {
+    .xl-cols { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none; padding: 0; }
+    .xl-head { padding: 20px 20px 15px; }
+    .xl-body { padding: 0 20px 20px; }
+    .xl-foot .right { width: 100%; }
+    .map-row { grid-template-columns: 1fr; padding: 12px 16px; gap: 8px; border-bottom: 1px solid var(--tapio-frost-gray); }
+    .map-row:last-child { border-bottom: 0; }
+    .map-row > div { height: auto; padding: 0; border-bottom: 0; }
+    .map-row:first-child > div:nth-child(n+2) { display: none; }
+    .map-row .map-arrow { display: none; }
+    .map-label .name { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="nav-scrim"></div>
+  <aside class="nav">
+    <div>
+      <div class="nav-company">
+        <div class="nav-company-id">
+          <img src="assets/company-logo.png" alt="">
+          <span>Company name</span>
+        </div>
+        <button class="nav-dots" aria-label="More options"><img class="icon-16" src="assets/dots-vertical.svg" alt=""></button>
+      </div>
+      <div class="sep"></div>
+    </div>
+
+    <div class="nav-search-wrap">
+      <div class="nav-search">
+        <img class="icon-16" src="assets/search-light.svg" alt="">
+        <span>Switch companies</span>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="nav-body">
+      <nav class="nav-ctas">
+        <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/home.svg" alt="">Home</span></button>
+
+        <div>
+          <button class="nav-cta open">
+            <span class="lbl"><img class="icon-24" src="assets/understand.svg" alt="">Understand</span>
+            <img class="icon-24 chev" src="assets/chevron-nav.svg" alt="">
+          </button>
+          <div class="nav-sub">
+            <a href="#">Project manager</a>
+            <a href="#" class="active">Data collection</a>
+            <a href="#">Data quality</a>
+            <a href="#">Report analysis</a>
+            <a href="#">Document center</a>
+          </div>
+        </div>
+
+        <button class="nav-cta">
+          <span class="lbl"><img class="icon-24" src="assets/act.svg" alt="">Act</span>
+          <img class="icon-24" src="assets/chevron-nav2.svg" alt="">
+        </button>
+        <button class="nav-cta">
+          <span class="lbl"><img class="icon-24" src="assets/engage.svg" alt="">Engage</span>
+          <img class="icon-24" src="assets/chevron-nav2.svg" alt="">
+        </button>
+      </nav>
+
+      <div class="nav-bottom">
+        <div class="nav-bottom-links">
+          <div class="sep"></div>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/book-closed.svg" alt="">User guide</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/microscope.svg" alt="">Our methodology</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/shield.svg" alt="">Privacy</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/virus.svg" alt="">Report bug</span></button>
+        </div>
+        <button class="nav-collapse" aria-label="Collapse navigation"><img class="icon-16" src="assets/chevron-left-double.svg" alt=""></button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" aria-label="Open navigation"><img class="icon-16" src="assets/chevron-left-double.svg" alt=""></button>
+      <div class="crumbs">
+        <span>Home</span>
+        <img class="icon-20 chev" src="assets/chevron-breadcrumb.svg" alt="">
+        <strong>Import center</strong>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" aria-label="Hide"><img class="icon-16" src="assets/eye-off.svg" alt=""></button>
+        <button class="icon-btn" aria-label="Notifications"><img class="icon-16" src="assets/bell.svg" alt=""></button>
+        <button class="icon-btn" aria-label="Language"><img class="icon-16" src="assets/flag-fr.svg" alt=""></button>
+        <img class="avatar" src="assets/avatar.png" alt="User avatar">
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- Stepper -->
+      <section class="stepper-card">
+        <h1 class="stepper-title">Import your data</h1>
+        <div class="steps">
+          <div class="step"><small>Completed</small><span>1. Setup</span></div>
+          <div class="step current"><small>In progress</small><span>2. Upload file</span></div>
+          <div class="step todo"><small>Incomplete</small><span>3. Data verification</span></div>
+        </div>
+        <div class="stepper-body">
+          <p>Upload your file to the platform. If using an external file, map the columns of your Excel file to the selected report structure from Step 1 to ensure accurate alignment. Columns such as <b>Site</b>, <b>Year</b>, <b>Particularity</b>, <b>Main Steps</b>, <b>Form Sections</b>, and <b>Sub Sections</b> must be mapped for successful processing. Mapping other columns is optional, but any unmapped columns will not be imported.</p>
+          <div class="note"><img class="icon-16" src="assets/alert-circle-dark.svg" alt="">In this step, data is only loaded, not imported. Importing occurs in Step 3 and may involve a loading time.</div>
+        </div>
+      </section>
+
+      <div class="sections">
+        <!-- Import file -->
+        <section class="panel">
+          <h2 class="panel-title">Import file</h2>
+          <div class="panel-body">
+            <div class="block" id="templateBlock">
+              <h3 class="section-title" id="templateTitle">1. Download your excel structured file</h3>
+              <div class="template-scroll">
+              <div class="template">
+                <div class="t-name" id="tName">Template name</div>
+                <div class="t-tags" id="tTags"><span>Default</span><span>City</span><span>Tapio</span><span>Bilan carbone</span></div>
+                <div class="t-action">
+                  <div class="t-actions">
+                    <button class="eye-btn" id="previewBtn" aria-pressed="false" aria-label="View template details">
+                      <img class="icon-16 off" src="assets/eye-dark.svg" alt="">
+                      <img class="icon-16 on" src="assets/eye-light.svg" alt="">
+                    </button>
+                    <button class="dl-btn" id="downloadBtn" aria-label="Download template excel file" hidden><img class="icon-16" src="assets/download-cloud.svg" alt=""></button>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            <div class="block">
+              <h3 class="section-title" id="fillTitle">2. Fill in the data manually and save</h3>
+              <div class="instructions">
+                <div class="instr-list">
+                  <div class="instr"><img class="icon-16" src="assets/locked.svg" alt="">Data from locked or aggregated reports will not be imported. Please ensure the relevant reports are unlocked.</div>
+                  <div class="instr tall"><img class="icon-16" src="assets/file-02.svg" alt="">Verify that each row in your excel file represent the information for one activity data</div>
+                  <div class="instr" id="descValueNote" hidden><img class="icon-16" src="assets/help-circle-dark.svg" alt="">Data with both description &amp; value missing will be excluded from the import. Please check carefully before upload.</div>
+                  <div class="instr"><img class="icon-16" src="assets/database-01.svg" alt="">Need to access the Emission factor database? <a href="#">Click here</a></div>
+                  <div class="instr tall"><img class="icon-16" src="assets/file-check-02.svg" alt="">Check and save your data.</div>
+                </div>
+                <div class="info-banner">
+                  <img class="icon-16" src="assets/alert-circle-banner.svg" alt="">
+                  <div>
+                    <p>It is required that each activity data has at least their site, year, main step, form section &amp; sub section in order to be imported in the platform.</p>
+                    <p>If data is missing for any of these columns, you will be able to correct it in the next step before importing your file.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="block">
+              <h3 class="section-title" id="uploadTitle">3. Upload file</h3>
+              <label class="upload" id="dropzone">
+                <input type="file" id="fileInput" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                <strong>Upload file</strong>
+                <small>Allowed file format: CSV, xlsx<br>Max file size 10 GB</small>
+              </label>
+              <div class="file" id="fileCard" hidden>
+                <div>
+                  <div class="file-name" id="fileName">File name</div>
+                  <div class="file-meta"><span id="fileSize">File size</span><i></i><span id="fileFormat">File format</span></div>
+                </div>
+                <button class="icon-btn" id="removeFile" aria-label="Remove file"><img class="icon-16" src="assets/trash.svg" alt=""></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Column mapping (external file only) -->
+        <section class="panel" id="mappingPanel">
+          <h2 class="panel-title">Column mapping</h2>
+          <div id="mapping">
+            <div class="map-row">
+              <div class="map-head">Platform's data base
+                <button class="tip-trigger" data-tip="These are the columns the platform recognizes, your excel columns need to be mapped to one of these platform’s columns." aria-label="About platform's data base"><img class="icon-16" src="assets/help-circle.svg" alt=""></button>
+              </div>
+              <div></div>
+              <div class="map-head">Excel columns
+                <button class="tip-trigger" data-tip="The dropdown contains all your excel columns. You need to map them to the platform’s columns correctly. Be extra careful to map the critical columns as without them, the data can’t be imported." aria-label="About excel columns"><img class="icon-16" src="assets/help-circle.svg" alt=""></button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <button class="cta" id="cancelBtn">Cancel import</button>
+        <div class="footer-right">
+          <button class="cta" onclick="location.href='step-1.html'">Return</button>
+          <button class="cta primary" id="uploadBtn" disabled>Upload data</button>
+        </div>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<!-- Import confirmation modal -->
+<dialog class="modal" id="confirmModal" aria-labelledby="confirmTitle">
+  <div class="modal-inner">
+    <div class="modal-head">
+      <h2 id="confirmTitle">Import data</h2>
+      <button class="modal-close" data-close aria-label="Close"><img src="assets/x-close.svg" alt=""></button>
+    </div>
+    <div class="modal-body">
+      <p>Proceed with import? The following columns have not been mapped. As a result, the data in these columns will not be imported into the platform.</p>
+      <ul id="unmappedList"></ul>
+    </div>
+    <div class="modal-foot">
+      <button class="cta" data-close>Cancel</button>
+      <button class="cta primary" id="confirmImport">Import data</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Template's excel file modal -->
+<dialog class="modal" id="excelModal" aria-labelledby="xlTitle">
+  <div class="modal-inner">
+    <div class="modal-head xl-head">
+      <div class="xl-title">
+        <h2 id="xlTitle">Template's excel file</h2>
+        <button class="modal-close" data-close aria-label="Close"><img src="assets/x-close.svg" alt=""></button>
+      </div>
+      <p class="xl-step" id="xlStep" hidden></p>
+      <p class="xl-desc">Advanced customization of your excel file.</p>
+    </div>
+
+    <!-- Step 1: columns -->
+    <div class="xl-body" data-xl-step="1">
+      <div class="xl-heading">Select the columns you want in your excel file.
+        <span class="tip-trigger" tabindex="0" data-tip="Only columns selected will be present in the excel file. This helps you keep only the needed data in your excel file." aria-label="About column selection"><img class="icon-16" src="assets/modal-info.svg" alt=""></span>
+      </div>
+      <div class="xl-cols" id="xlCols"></div>
+    </div>
+
+    <!-- Step 2: tag families -->
+    <div class="xl-body" data-xl-step="2" hidden>
+      <div class="xl-heading">1. Selected tag families for import
+        <span class="tip-trigger" tabindex="0" data-tip="This section lists your selected tag families. Click the cross icon on a tag family to remove it." aria-label="About selected tag families"><img class="icon-16" src="assets/modal-help.svg" alt=""></span>
+      </div>
+      <div class="chips" id="famSelected" data-empty="No tag family selected yet."></div>
+      <div class="xl-heading">2. Select the tag families you want to include in the import/template
+        <span class="tip-trigger" tabindex="0" data-tip='Click on individual tag families to select them, or choose "All tag families" to select all at once.' aria-label="About selecting tag families"><img class="icon-16" src="assets/modal-help.svg" alt=""></span>
+      </div>
+      <label class="xl-search"><img class="icon-16" src="assets/search.svg" alt=""><input type="search" id="famSearch" placeholder="Search for tag families" aria-label="Search for tag families"></label>
+      <div class="chips" id="famAll"></div>
+    </div>
+
+    <!-- Step 3: tags -->
+    <div class="xl-body" data-xl-step="3" hidden>
+      <div class="xl-heading">1. Selected tags for import
+        <span class="tip-trigger" tabindex="0" data-tip="This section lists your selected tags. Click the cross icon on a tag to remove it." aria-label="About selected tags"><img class="icon-16" src="assets/modal-help.svg" alt=""></span>
+      </div>
+      <div class="chips" id="tagSelected" data-empty="No tag selected yet."></div>
+      <div>
+        <div class="xl-heading">2. Select the tags you want to include in the import/template
+          <span class="tip-trigger" tabindex="0" data-tip='Click on individual tags to select them, or choose "All tags" to select all at once.' aria-label="About selecting tags"><img class="icon-16" src="assets/modal-help.svg" alt=""></span>
+        </div>
+        <div class="xl-tabs" id="tagTabs" role="tablist" aria-label="Tag families"></div>
+      </div>
+      <label class="xl-search"><img class="icon-16" src="assets/search.svg" alt=""><input type="search" id="tagSearch" placeholder="Search for tags" aria-label="Search for tags"></label>
+      <div class="chips" id="tagAll"></div>
+    </div>
+
+    <div class="modal-foot xl-foot">
+      <button class="cta" data-close>Cancel</button>
+      <div class="right">
+        <button class="cta" id="xlBack" hidden>Back</button>
+        <button class="cta primary" id="xlNext">Download</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- Leave flow modal -->
+<dialog class="modal fixed" id="leaveModal" aria-labelledby="leaveTitle">
+  <div class="modal-inner">
+    <div class="modal-top">
+      <div class="modal-head">
+        <h2 id="leaveTitle">Leave import center ?</h2>
+        <button class="modal-close" data-close aria-label="Close"><img src="assets/x-close.svg" alt=""></button>
+      </div>
+      <div class="modal-body danger">
+        <p>Cancel your import? This action cannot be undone.</p>
+        <ul><li>Any progress made so far will be lost and your data won’t be imported</li></ul>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="cta" data-close>Return</button>
+      <button class="cta danger" id="confirmLeave">Leave import center</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="template-drawer.js?v=10"></script>
+<script>
+  /* ---------- Data ---------- */
+  const EXCEL_COLUMNS = [
+    "Do not include", "Site", "Date début", "Date fin", "Drivers", "Form sections", "Sections", "Name",
+    "Facteurs d'emissions", "Valeur", "Incertitude", "Commentaire", "Durée de vie", "Date d'acquisition"
+  ];
+  const FIELDS = [
+    { name: "Site", critical: true, tip: "The site represents a specific branch or office location within your organization." },
+    { name: "Start date", critical: true, tip: "The beginning of reporting period." },
+    { name: "End date", critical: true, tip: "The end of reporting period." },
+    { name: "Main Steps", critical: true, tip: "Categories for various areas where greenhouse gas (GHG) emissions occur, and they help organizations systematically measure, report, and manage their emissions." },
+    { name: "Form Sections", critical: true, tip: "Form sections group related data in your report, such as sub sections, & their emission sources, ensuring a structured and consistent carbon report." },
+    { name: "Sub Sections", critical: true, value: "Sections", tip: "Represents a specific category of emissions within your carbon report, where activity data is entered. It helps structure your data based on emission sources like energy use, transportation, or purchased goods, ensuring accurate tracking and reporting." },
+    { name: "Description", value: "Name", tip: "The name of the activity data" },
+    { name: "Particularity", value: "Do not include", tip: "Distinctions made for reports of same site for same year." },
+    { name: "Emission factor (EF) name", value: "Facteurs d'emissions", tip: "An Emission Factor (EF) converts activity data, like fuel or energy use, into greenhouse gas emissions for accurate carbon reporting." },
+    { name: "EF value", value: "Valeur", tip: "EF value represents the amount of greenhouse gas emissions associated with a specific activity or resource. It is expressed as emissions per unit of activity, such as kilograms of CO₂-equivalent per kWh of electricity used or per liter of fuel consumed. Emission factors help calculate and track the environmental impact of activities and are key to carbon accounting and sustainability reporting." },
+    { name: "Uncertainty", value: "Incertitude", tip: "Uncertainty represents the potential variability or inaccuracy in emission or activity data, reflecting limitations in measurement, estimation, or data quality." },
+    { name: "Comments", value: "Commentaire", tip: "Remarks left, for an activity data" },
+    { name: "Lifetime", tip: "The amount of years that the asset’s use and impact is divided into." },
+    { name: "Acquisition date", tip: "The year of purchase of the fixed asset." }
+  ];
+  const PLACEHOLDER = "Select an excel column";
+  let SETUP = {};
+  try { SETUP = JSON.parse(sessionStorage.getItem("importSetup")) || {}; } catch (e) { /* storage unavailable: use defaults */ }
+  const PATH = SETUP.path || "external";
+  const TEMPLATE = SETUP.template || { name: "Template name", type: "Default", entity: "City", author: "Tapio", protocol: "Bilan carbone", method: "Location based" };
+  const state = { file: null, mapping: Object.fromEntries(FIELDS.map(f => [f.name, f.value || null])) };
+
+  const $ = s => document.querySelector(s);
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const isMapped = v => v && v !== "Do not include";
+
+  /* ---------- Mapping table ---------- */
+  const mappingEl = $("#mapping");
+  FIELDS.forEach((f, i) => {
+    const row = document.createElement("div");
+    row.className = "map-row";
+    row.innerHTML = `
+      <div class="map-label">
+        <span class="name">${esc(f.name)}
+          <button class="tip-trigger" data-tip="${esc(f.tip)}" aria-label="About ${esc(f.name)}"><img class="icon-16" src="assets/info-circle.svg" alt=""></button>
+        </span>
+        ${f.critical ? `<span class="crit" data-crit="${esc(f.name)}"></span>` : ""}
+      </div>
+      <div class="map-arrow"><img class="icon-16" src="assets/arrow-narrow-right.svg" alt=""></div>
+      <div>
+        <div class="select" data-field="${esc(f.name)}">
+          <button class="select-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Excel column for ${esc(f.name)}">
+            <span class="select-value"></span>
+            <img class="icon-20" src="assets/chevron-down-dark.svg" alt="">
+          </button>
+        </div>
+      </div>`;
+    mappingEl.appendChild(row);
+  });
+
+  function render() {
+    document.querySelectorAll(".select").forEach(sel => {
+      const v = state.mapping[sel.dataset.field];
+      const btn = sel.querySelector(".select-btn");
+      btn.classList.toggle("filled", !!v);
+      sel.querySelector(".select-value").textContent = v || PLACEHOLDER;
+    });
+    document.querySelectorAll("[data-crit]").forEach(el => {
+      const ok = isMapped(state.mapping[el.dataset.crit]);
+      el.classList.toggle("ok", ok);
+      el.textContent = ok ? "Critical column mapped" : "Critical column";
+    });
+    const criticalDone = PATH !== "external" || FIELDS.filter(f => f.critical).every(f => isMapped(state.mapping[f.name]));
+    $("#uploadBtn").disabled = !(state.file && criticalDone);
+  }
+
+  /* ---------- Custom select ---------- */
+  let openSelect = null;
+  function closeSelect() {
+    if (!openSelect) return;
+    openSelect.classList.remove("open");
+    openSelect.querySelector(".select-btn").setAttribute("aria-expanded", "false");
+    openSelect.querySelector(".select-menu")?.remove();
+    openSelect = null;
+  }
+  function openMenu(sel) {
+    closeSelect();
+    const field = sel.dataset.field;
+    const menu = document.createElement("div");
+    menu.className = "select-menu";
+    menu.setAttribute("role", "listbox");
+    menu.innerHTML = EXCEL_COLUMNS.map(c =>
+      `<div role="option" tabindex="-1" aria-selected="${state.mapping[field] === c}">${esc(c)}</div>`).join("");
+    sel.appendChild(menu);
+    const limit = Math.min(window.innerHeight, $(".footer").getBoundingClientRect().top);
+    if (sel.getBoundingClientRect().bottom + 300 > limit) menu.classList.add("up");
+    sel.classList.add("open");
+    sel.querySelector(".select-btn").setAttribute("aria-expanded", "true");
+    openSelect = sel;
+    const current = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
+    current.classList.add("active");
+    current.scrollIntoView({ block: "nearest" });
+  }
+  function choose(sel, value) {
+    state.mapping[sel.dataset.field] = value;
+    closeSelect();
+    render();
+    sel.querySelector(".select-btn").focus();
+  }
+  mappingEl.addEventListener("click", e => {
+    const opt = e.target.closest('[role="option"]');
+    if (opt) return choose(opt.closest(".select"), opt.textContent);
+    const btn = e.target.closest(".select-btn");
+    if (btn) {
+      const sel = btn.closest(".select");
+      sel === openSelect ? closeSelect() : openMenu(sel);
+    }
+  });
+  mappingEl.addEventListener("keydown", e => {
+    const btn = e.target.closest(".select-btn");
+    if (!btn) return;
+    const sel = btn.closest(".select");
+    if (sel !== openSelect) {
+      if (["ArrowDown", "ArrowUp"].includes(e.key)) { e.preventDefault(); openMenu(sel); }
+      return;
+    }
+    const opts = [...sel.querySelectorAll('[role="option"]')];
+    let i = opts.findIndex(o => o.classList.contains("active"));
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      opts[i]?.classList.remove("active");
+      i = Math.max(0, Math.min(opts.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)));
+      opts[i].classList.add("active");
+      opts[i].scrollIntoView({ block: "nearest" });
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      choose(sel, opts[i].textContent);
+    } else if (e.key === "Escape" || e.key === "Tab") {
+      closeSelect();
+    }
+  });
+  document.addEventListener("click", e => { if (openSelect && !openSelect.contains(e.target)) closeSelect(); });
+
+  /* ---------- Path chosen in Step 1 ---------- */
+  // "external": map an external file | "download": download Tapio's structured file | "structured": already have one
+  (() => {
+    const t = SETUP.template;
+    if (t) {
+      $("#tName").textContent = t.name;
+      $("#tTags").innerHTML = [t.type, t.entity, t.author, t.protocol].map(v => `<span>${esc(v)}</span>`).join("");
+    }
+    if (PATH === "external") $("#templateTitle").textContent = "1. View details of your selected reference template";
+    $("#mappingPanel").hidden = PATH !== "external";
+    $("#downloadBtn").hidden = PATH !== "download";
+    if (PATH === "structured") {
+      $("#templateBlock").hidden = true;
+      $("#descValueNote").hidden = false;
+      $("#fillTitle").textContent = "1. Fill in the data manually and save";
+      $("#uploadTitle").textContent = "2. Upload file";
+    }
+  })();
+
+  /* ---------- File upload ---------- */
+  const dropzone = $("#dropzone"), fileInput = $("#fileInput");
+  function formatSize(bytes) {
+    const units = ["B", "KB", "MB", "GB"];
+    let i = 0;
+    while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
+    return `${bytes.toFixed(i ? 1 : 0)} ${units[i]}`;
+  }
+  function setFile(file) {
+    if (file && !/\.(csv|xlsx)$/i.test(file.name)) {
+      alert("Allowed file format: CSV, xlsx");
+      return;
+    }
+    state.file = file || null;
+    dropzone.hidden = !!file;
+    $("#fileCard").hidden = !file;
+    if (file) {
+      $("#fileName").textContent = file.name.replace(/\.[^.]+$/, "");
+      $("#fileSize").textContent = formatSize(file.size);
+      $("#fileFormat").textContent = file.name.split(".").pop().toUpperCase();
+    }
+    fileInput.value = "";
+    render();
+  }
+  fileInput.addEventListener("change", () => setFile(fileInput.files[0]));
+  $("#removeFile").addEventListener("click", () => setFile(null));
+  ["dragenter", "dragover"].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add("drag"); }));
+  ["dragleave", "drop"].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove("drag"); }));
+  dropzone.addEventListener("drop", e => setFile(e.dataTransfer.files[0]));
+
+  $("#previewBtn").addEventListener("click", e => {
+    const b = e.currentTarget;
+    b.setAttribute("aria-pressed", "true");
+    openTemplateDrawer(TEMPLATE);
+  });
+  // Keep the eye button in its active state only while the drawer is open.
+  new MutationObserver(() => $("#previewBtn").setAttribute("aria-pressed", $("#templateDrawer").open))
+    .observe($("#templateDrawer"), { attributes: true, attributeFilter: ["open"] });
+
+  /* ---------- Template's excel file (download) ---------- */
+  const XL_COLUMNS = [
+    "Description", "Method", "Hypothesis", "Value", "Location based emission factor", "Market based emission factor",
+    "Emission ID", "Uncertainty", "Unit", "Comments", "Lifetime", "Acquisition year", "Total emission",
+    "Assumption made", "Decomposition", "Tags"
+  ];
+  const TAG_FAMILIES = ["#df91b6", "#ff2f93", "#332fff", "#c8ec7a", "#7aece6", "#d355ff"].map((color, i) => ({
+    name: `Tag family ${i + 1}`, color,
+    tags: Array.from({ length: 4 }, (_, j) => `Tag name ${i * 4 + j + 1}`)
+  }));
+  const xl = { step: 1, cols: new Set(XL_COLUMNS.filter(c => c !== "Tags")), fams: new Set(), tags: new Set(), tab: "All" };
+  const withTags = () => xl.cols.has("Tags");
+  const famOf = name => TAG_FAMILIES.find(f => f.name === name);
+  const colorOfTag = tag => TAG_FAMILIES.find(f => f.tags.includes(tag)).color;
+  const chip = (label, color, { remove, toggle, pressed } = {}) => remove
+    ? `<span class="chip removable" style="--c:${color}">${esc(label)}<button class="chip-x" data-remove="${esc(remove)}" aria-label="Remove ${esc(label)}"><img src="assets/chip-x.svg" alt=""></button></span>`
+    : `<button class="chip" style="${color ? `--c:${color}` : ""}" data-toggle="${esc(toggle)}" aria-pressed="${!!pressed}">${esc(label)}</button>`;
+
+  $("#xlCols").innerHTML = XL_COLUMNS.map(c =>
+    `<label><input type="checkbox" class="checkbox" value="${esc(c)}" ${xl.cols.has(c) ? "checked" : ""}>${esc(c)}</label>`).join("");
+  $("#xlCols").addEventListener("change", e => {
+    e.target.checked ? xl.cols.add(e.target.value) : xl.cols.delete(e.target.value);
+    renderXl();
+  });
+
+  function renderXl() {
+    const total = withTags() ? 3 : 1;
+    $("#xlStep").hidden = total === 1;
+    $("#xlStep").textContent = `Step ${xl.step} of ${total}`;
+    document.querySelectorAll("[data-xl-step]").forEach(b => { b.hidden = +b.dataset.xlStep !== xl.step; });
+    $("#xlBack").hidden = xl.step === 1;
+    $("#xlNext").textContent = xl.step === total ? "Download" : "Next";
+    $("#xlNext").disabled = xl.step === 2 && !xl.fams.size;
+
+    if (xl.step === 2) {
+      const q = $("#famSearch").value.trim().toLowerCase();
+      $("#famSelected").innerHTML = [...xl.fams].map(n => chip(n, famOf(n).color, { remove: n })).join("");
+      $("#famAll").innerHTML = chip("All tag families", "", { toggle: "*", pressed: xl.fams.size === TAG_FAMILIES.length }) +
+        TAG_FAMILIES.filter(f => f.name.toLowerCase().includes(q)).map(f => chip(f.name, f.color, { toggle: f.name, pressed: xl.fams.has(f.name) })).join("");
+    }
+    if (xl.step === 3) {
+      if (xl.tab !== "All" && !xl.fams.has(xl.tab)) xl.tab = "All";
+      const fams = TAG_FAMILIES.filter(f => xl.fams.has(f.name));
+      $("#tagTabs").innerHTML = [`<button class="xl-tab" role="tab" data-tab="All" aria-selected="${xl.tab === "All"}">All</button>`]
+        .concat(fams.map(f => `<button class="xl-tab" role="tab" data-tab="${esc(f.name)}" aria-selected="${xl.tab === f.name}" style="--c:${f.color}"><i></i>${esc(f.name)}</button>`)).join("");
+      const q = $("#tagSearch").value.trim().toLowerCase();
+      const visible = fams.filter(f => xl.tab === "All" || f.name === xl.tab).flatMap(f => f.tags).filter(t => t.toLowerCase().includes(q));
+      $("#tagSelected").innerHTML = [...xl.tags].map(t => chip(t, colorOfTag(t), { remove: t })).join("");
+      $("#tagAll").innerHTML = (visible.length ? chip("All tags", "", { toggle: "*", pressed: visible.every(t => xl.tags.has(t)) }) : "") +
+        visible.map(t => chip(t, colorOfTag(t), { toggle: t, pressed: xl.tags.has(t) })).join("");
+    }
+  }
+
+  $("#famSearch").addEventListener("input", renderXl);
+  $("#tagSearch").addEventListener("input", renderXl);
+  $("#tagTabs").addEventListener("click", e => { const t = e.target.closest("[data-tab]"); if (t) { xl.tab = t.dataset.tab; renderXl(); } });
+  $("#excelModal").addEventListener("click", e => {
+    const rm = e.target.closest("[data-remove]"), tg = e.target.closest(".chip[data-toggle]");
+    if (!rm && !tg) return;
+    const set = xl.step === 2 ? xl.fams : xl.tags;
+    const dropFamilyTags = name => famOf(name).tags.forEach(t => xl.tags.delete(t));
+    if (rm) {
+      set.delete(rm.dataset.remove);
+      if (xl.step === 2) dropFamilyTags(rm.dataset.remove);
+    } else if (tg.dataset.toggle === "*") {
+      const all = [...tg.parentElement.querySelectorAll(".chip[data-toggle]")].map(b => b.dataset.toggle).filter(v => v !== "*");
+      const every = all.every(v => set.has(v));
+      all.forEach(v => {
+        every ? set.delete(v) : set.add(v);
+        if (every && xl.step === 2) dropFamilyTags(v);
+      });
+    } else {
+      const v = tg.dataset.toggle;
+      set.has(v) ? set.delete(v) : set.add(v);
+      if (xl.step === 2 && !set.has(v)) dropFamilyTags(v);
+    }
+    renderXl();
+  });
+
+  // Prototype download: a CSV whose header row holds the chosen columns (and one column per chosen tag family).
+  function downloadTemplate() {
+    const header = ["Site", "Start date", "End date", "Main step", "Form section", "Sub section"]
+      .concat(XL_COLUMNS.filter(c => c !== "Tags" && xl.cols.has(c)))
+      .concat(withTags() ? TAG_FAMILIES.filter(f => xl.fams.has(f.name)).map(f => f.name) : []);
+    const csv = header.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\r\n";
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = `${TEMPLATE.name} - ${TEMPLATE.protocol}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  $("#xlNext").addEventListener("click", () => {
+    if (xl.step === (withTags() ? 3 : 1)) {
+      downloadTemplate();
+      $("#excelModal").close();
+      return;
+    }
+    xl.step++;
+    renderXl();
+  });
+  $("#xlBack").addEventListener("click", () => { xl.step--; renderXl(); });
+  $("#downloadBtn").addEventListener("click", () => {
+    xl.step = 1;
+    if (!xl.fams.size) TAG_FAMILIES.slice(0, 5).forEach(f => xl.fams.add(f.name));
+    renderXl();
+    $("#excelModal").showModal();
+  });
+
+  /* ---------- Modals ---------- */
+  const goToStep3 = () => {
+    try { sessionStorage.setItem("importFileName", state.file ? state.file.name.replace(/\.[^.]+$/, "") : "File_name"); } catch (e) { /* storage unavailable */ }
+    location.href = "index.html";
+  };
+  $("#uploadBtn").addEventListener("click", () => {
+    if (PATH !== "external") return goToStep3();
+    const unmapped = FIELDS.filter(f => !state.mapping[f.name]).map(f => f.name);
+    if (!unmapped.length) return goToStep3();
+    $("#unmappedList").innerHTML = unmapped.map(n => `<li>${esc(n)}</li>`).join("");
+    $("#confirmModal").showModal();
+  });
+  $("#confirmImport").addEventListener("click", goToStep3);
+  $("#cancelBtn").addEventListener("click", () => $("#leaveModal").showModal());
+  $("#confirmLeave").addEventListener("click", () => location.reload());
+
+  render();
+</script>
+<script src="shared.js?v=10"></script>
+</body>
+</html>
