@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="2" height="9.51499" viewBox="0 0 2 9.51499" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="Group 1">
+<path id="Vector 678" d="M1 0.715V5.515" stroke-width="1.43" stroke-linecap="round" stroke="#FEFEFE"/>
+<g id="Rectangle 34624105">
+<use xlink:href="#stroke0_0_868" fill="#FEFEFE"/>
+<mask id="stroke1_0_868" fill="white">
+<use xlink:href="#stroke0_0_868"/>
+</mask>
+<path d="M1 9.51499V9.51499C1.55228 9.51499 2 9.06727 2 8.51499V8.51499C2 7.9627 1.55228 7.51499 1 7.51499V7.51499C0.447715 7.51499 0 7.9627 0 8.51499V8.51499C0 9.06727 0.447715 9.51499 1 9.51499Z" stroke-width="2" stroke="#FEFEFE" mask="url(#stroke1_0_868)"/>
+</g>
+</g>
+<defs>
+<path id="stroke0_0_868" d="M0 8.51499C0 7.9627 0.447715 7.51499 1 7.51499V7.51499C1.55228 7.51499 2 7.9627 2 8.51499V8.51499C2 9.06727 1.55228 9.51499 1 9.51499V9.51499C0.447715 9.51499 0 9.06727 0 8.51499V8.51499Z"/>
+</defs>
+</svg>

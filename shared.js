@@ -44,6 +44,22 @@
   window.addEventListener("scroll", hide, { passive: true, capture: true });
 })();
 
+// Toast: short confirmation pill near the bottom of the viewport.
+window.toast = (() => {
+  let el, timer;
+  return msg => {
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "toast"; el.setAttribute("role", "status");
+      document.body.append(el);
+    }
+    el.textContent = msg;
+    requestAnimationFrame(() => el.classList.add("show"));
+    clearTimeout(timer);
+    timer = setTimeout(() => el.classList.remove("show"), 3000);
+  };
+})();
+
 // Modals: close on backdrop click or any [data-close] control.
 document.querySelectorAll("dialog").forEach(d => {
   d.addEventListener("click", e => { if (e.target === d || e.target.closest("[data-close]")) d.close(); });
