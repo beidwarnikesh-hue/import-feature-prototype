@@ -6,28 +6,28 @@
 <title>Import center – Setup</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css?v=10">
-<link rel="stylesheet" href="flow.css?v=10">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css?v=20">
+<link rel="stylesheet" href="flow.css?v=20">
 <style>
   :root { --tapio-warning-fill: #fff7de; }
 
-  .stepper-title { padding: 23px 16px; }
-  .panel.setup .panel-body { padding: 24px 16px; }
+
+  .setup .sec-body { display: flex; flex-direction: column; gap: 16px; }
 
   /* ---------- Radio cards ---------- */
   .radio-group { display: flex; flex-direction: column; gap: 8px; border: 0; }
-  .radio-group legend { padding: 0; margin-bottom: 8px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--tapio-charcoal-blue); }
+  .radio-group legend { padding: 0; margin-bottom: 8px; font: var(--ts-label); color: #4b5563; }
   .radio-row { display: flex; gap: 16px; }
   .radio-card {
     flex: 1 0 0; min-width: 0; display: flex; align-items: center; gap: 8px;
-    padding: 11px 12px; cursor: pointer;
-    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 8px;
-    font-size: 16px; line-height: 24px; color: var(--tapio-deep-indigo);
+    min-height: 48px; padding: 11px 12px; cursor: pointer;
+    background: #fff; border: 1px solid var(--act-gray-200); border-radius: 8px;
+    font: var(--ts-body); color: var(--act-ink);
     transition: background .15s, border-color .15s;
   }
-  .radio-card:hover { border-color: var(--tapio-mint); }
-  .radio-card:has(input:checked) { background: var(--tapio-glacier-blue); border-color: var(--tapio-mint); font-weight: 500; }
+  .radio-card:hover { background: #f9fafb; }
+  .radio-card:has(input:checked) { background: var(--sky-100); border-color: #bae6fd; font: var(--ts-body-medium); color: var(--sky-950); }
   .radio-card:has(input:focus-visible) { outline: 2px solid var(--tapio-midnight-blue); outline-offset: 2px; }
   .radio-card input { position: absolute; opacity: 0; pointer-events: none; }
   .radio-card .dot {
@@ -35,68 +35,48 @@
     border: 2px solid var(--tapio-midnight-blue); display: flex; align-items: center; justify-content: center;
   }
   .radio-card input:checked + .dot::after { content: ""; width: 8px; height: 8px; border-radius: 8px; background: var(--tapio-deep-indigo); }
-  .radio-group.strong .radio-card { font-weight: 500; }
 
-  .warn-banner {
-    display: flex; align-items: center; gap: 8px; padding: 8px 16px;
-    background: var(--tapio-warning-fill); border-radius: 8px;
-    font-size: 16px; line-height: 24px;
-  }
-  .warn-banner a { font-weight: 500; color: var(--tapio-dark-navy); }
+  /* Inline hint under the file-type choice (no fill, per design) */
+  .hint-line { display: flex; align-items: flex-start; gap: 8px; font: var(--ts-body); color: var(--act-ink); }
+  .hint-line img { flex-shrink: 0; margin-top: 2px; }
+  .hint-line a { margin-left: 4px; }
+  .hint-line a { color: #0369a1; text-decoration: underline; text-underline-offset: 2px; }
 
   /* ---------- Template selection ---------- */
-  .panel-title .tip-trigger { vertical-align: -2px; margin-left: 4px; }
-  .t-filters {
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px;
-    padding: 23px 16px 24px; border-bottom: 1px solid var(--tapio-frost-gray);
-  }
-  .t-search {
-    flex: 0 1 268px; min-width: 0; height: 40px; display: flex; align-items: center; gap: 4px; padding: 8px;
-    border: 1px solid var(--tapio-frost-gray); border-radius: 6px; box-shadow: var(--shadow-xs);
-    font-size: 16px; line-height: 24px;
-  }
-  .t-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; color: var(--tapio-deep-indigo); }
-  .t-search input::placeholder { color: var(--tapio-charcoal-blue); opacity: 1; }
-  .t-search:focus-within { border-color: var(--tapio-midnight-blue); }
-  .t-dropdowns { display: flex; flex-wrap: wrap; gap: 16px; }
-  .filter { position: relative; }
-  .filter-btn {
-    display: flex; align-items: center; gap: 4px; padding: 7px 8px; white-space: nowrap;
-    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 8px; box-shadow: var(--shadow-xs);
-    font-size: 16px; line-height: 24px; color: var(--tapio-charcoal-blue);
-  }
-  .filter-btn.set { color: var(--tapio-deep-indigo); border-color: var(--tapio-midnight-blue); }
-  .filter.open .filter-btn img { transform: rotate(180deg); }
-  .filter .select-menu { left: auto; min-width: 100%; width: max-content; }
 
   .t-scroll { overflow-x: auto; }
   .t-table { width: 100%; min-width: 1080px; border-collapse: collapse; table-layout: fixed; }
   .t-table th, .t-table td {
-    height: 64px; padding: 0 16px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    border-bottom: 1px solid var(--tapio-frost-gray); border-right: 1px solid var(--tapio-frost-gray);
-    font-size: 16px; line-height: 24px; color: var(--tapio-deep-indigo);
+    height: 50px; padding: 0 16px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    border-bottom: 1px solid var(--act-gray-200);
+    font: var(--ts-body); color: var(--act-ink);
   }
-  .t-table th:last-child, .t-table td:last-child { border-right: 0; text-align: center; }
-  .t-table th { font-weight: 600; background: var(--tapio-white); overflow: visible; }
+  .t-table th:last-child, .t-table td:last-child { text-align: center; padding: 0 8px; }
+  .t-table th { overflow: visible; }
+  .t-table tbody tr:last-child td { border-bottom: 0; }
+  .t-table td.t-name { font: var(--ts-body-strong); }
   .t-table th .th { display: inline-flex; align-items: center; gap: 4px; }
   .t-table tbody tr { cursor: pointer; }
-  .t-table tbody tr:hover td { background: var(--tapio-powder-blue); }
-  .t-table tbody tr.selected td { background: var(--tapio-glacier-blue); }
-  .t-table .checkbox { margin: 0 auto; }
+  .t-table tbody tr:hover td { background: #f9fafb; }
+  .t-table tbody tr.selected td { background: #f0f9ff; border-bottom-color: var(--sky-100); }
+  .t-table th:first-child, .t-table td:first-child { padding: 0 16px; text-align: center; }
+  /* Single choice: radio (Figma radio_button_checked / unchecked) */
+  .t-radio {
+    appearance: none; -webkit-appearance: none; display: block; margin: 0 auto; width: 20px; height: 20px; cursor: pointer;
+    border: 2px solid #1d1b20; border-radius: 50%; background: #fff;
+  }
+  .t-radio:checked { background: radial-gradient(circle, #1d1b20 0 5px, #fff 5.5px); }
+  .t-radio:focus-visible { outline: 2px solid var(--tapio-midnight-blue); outline-offset: 2px; }
   .t-table .action-btn {
     width: 32px; height: 32px; padding: 8px; margin: 0 auto;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 8px; box-shadow: var(--shadow-xs);
+    display: flex; align-items: center; justify-content: center; border-radius: 8px;
   }
+  .t-table .action-btn:hover, .t-table tr.selected .action-btn { background: #f3f4f6; }
   .t-empty td { text-align: center !important; color: var(--tapio-charcoal-blue); cursor: default; }
 
 
   @media (max-width: 768px) {
     .radio-row { flex-direction: column; gap: 8px; }
-    .t-filters .t-search { flex: 1 1 100%; }
-    .t-dropdowns { gap: 8px; }
-    .warn-banner { align-items: flex-start; }
-    .warn-banner > img { margin-top: 4px; }
   }
 </style>
 </head>
@@ -108,17 +88,17 @@
     <div>
       <div class="nav-company">
         <div class="nav-company-id">
-          <img src="assets/company-logo.png" alt="">
+          <img src="assets/act-logo.png" alt="">
           <span>Company name</span>
         </div>
-        <button class="nav-dots" aria-label="More options"><img class="icon-16" src="assets/dots-vertical.svg" alt=""></button>
+        <button class="nav-dots" aria-label="More options"><img class="icon-16" src="assets/act-dots.svg" alt=""></button>
       </div>
       <div class="sep"></div>
     </div>
 
     <div class="nav-search-wrap">
       <div class="nav-search">
-        <img class="icon-16" src="assets/search-light.svg" alt="">
+        <img class="icon-16" src="assets/act-search.svg" alt="">
         <span>Switch companies</span>
       </div>
     </div>
@@ -131,8 +111,8 @@
 
         <div>
           <button class="nav-cta open">
-            <span class="lbl"><img class="icon-24" src="assets/understand.svg" alt="">Understand</span>
-            <img class="icon-24 chev" src="assets/chevron-nav.svg" alt="">
+            <span class="lbl"><img class="icon-24 p2" src="assets/act-understand.svg" alt="">Understand</span>
+            <img class="icon-24 chev" src="assets/act-chev-a.svg" alt="">
           </button>
           <div class="nav-sub">
             <a href="#">Project manager</a>
@@ -144,24 +124,24 @@
         </div>
 
         <button class="nav-cta">
-          <span class="lbl"><img class="icon-24" src="assets/act.svg" alt="">Act</span>
-          <img class="icon-24" src="assets/chevron-nav2.svg" alt="">
+          <span class="lbl"><img class="icon-24" src="assets/act-act.svg" alt="">Act</span>
+          <img class="icon-24" src="assets/act-chev-a.svg" alt="">
         </button>
         <button class="nav-cta">
-          <span class="lbl"><img class="icon-24" src="assets/engage.svg" alt="">Engage</span>
-          <img class="icon-24" src="assets/chevron-nav2.svg" alt="">
+          <span class="lbl"><img class="icon-24 p2" src="assets/act-engage.svg" alt="">Engage</span>
+          <img class="icon-24" src="assets/act-chev-a.svg" alt="">
         </button>
       </nav>
 
       <div class="nav-bottom">
         <div class="nav-bottom-links">
           <div class="sep"></div>
-          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/book-closed.svg" alt="">User guide</span></button>
-          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/microscope.svg" alt="">Our methodology</span></button>
-          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/shield.svg" alt="">Privacy</span></button>
-          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/virus.svg" alt="">Report bug</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-book.svg" alt="">User guide</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-microscope.svg" alt="">Our methodology</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-shield.svg" alt="">Privacy</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-virus.svg" alt="">Report bug</span></button>
         </div>
-        <button class="nav-collapse" aria-label="Collapse navigation"><img class="icon-16" src="assets/chevron-left-double.svg" alt=""></button>
+        <button class="nav-collapse" aria-label="Collapse navigation"><img class="icon-16" src="assets/act-collapse.svg" alt=""></button>
       </div>
     </div>
   </aside>
@@ -171,35 +151,37 @@
       <button class="icon-btn menu-btn" aria-label="Open navigation"><img class="icon-16" src="assets/chevron-left-double.svg" alt=""></button>
       <div class="crumbs">
         <span>Home</span>
-        <img class="icon-20 chev" src="assets/chevron-breadcrumb.svg" alt="">
+        <img class="icon-20 chev" src="assets/act-crumb-chev.svg" alt="">
         <strong>Import center</strong>
       </div>
       <div class="top-actions">
-        <button class="icon-btn" aria-label="Hide"><img class="icon-16" src="assets/eye-off.svg" alt=""></button>
-        <button class="icon-btn" aria-label="Notifications"><img class="icon-16" src="assets/bell.svg" alt=""></button>
-        <button class="icon-btn" aria-label="Language"><img class="icon-16" src="assets/flag-fr.svg" alt=""></button>
-        <img class="avatar" src="assets/avatar.png" alt="User avatar">
+        <button class="icon-btn" aria-label="Hide"><img class="icon-16" src="assets/act-eye-off.svg" alt=""></button>
+        <button class="icon-btn" aria-label="Notifications"><img class="icon-16" src="assets/act-bell.svg" alt=""></button>
+        <button class="icon-btn" aria-label="Language"><img class="icon-16" src="assets/act-flag-fr.svg" alt=""></button>
+        <img class="avatar" src="assets/act-avatar.png" alt="User avatar">
       </div>
     </header>
 
     <div class="container">
-      <section class="stepper-card">
-        <h1 class="stepper-title">Import your data</h1>
-        <div class="steps">
-          <div class="step current"><small>In progress</small><span>1. Setup</span></div>
-          <div class="step todo"><small>Incomplete</small><span>2. Upload file</span></div>
-          <div class="step todo"><small>Incomplete</small><span>3. Data verification</span></div>
-        </div>
-        <div class="stepper-body">
-          <p>Choose how to structure your data for import: you can either use your own external file or download a preformatted template to fill in. If using your own file, select a reference report structure from the platform to map your data in the next step.</p>
-        </div>
-      </section>
+      <nav class="flow-steps" aria-label="Import steps">
+        <ol>
+          <li class="flow-step current" aria-current="step"><img class="icon-20" src="assets/step-circle-white.svg" alt="">1. Setup</li>
+          <li class="flow-chev" aria-hidden="true"><img class="icon-20" src="assets/step-chevron.svg" alt=""></li>
+          <li class="flow-step"><img class="icon-20" src="assets/step-circle.svg" alt="">2. Upload file</li>
+          <li class="flow-chev" aria-hidden="true"><img class="icon-20" src="assets/step-chevron.svg" alt=""></li>
+          <li class="flow-step"><img class="icon-20" src="assets/step-circle.svg" alt="">3. Data verification</li>
+        </ol>
+      </nav>
+      <header class="task-intro">
+        <div class="ph-title"><h1>Import your data</h1><span class="ph-badge">Step 1 of 3</span></div>
+        <p>Choose how to structure your data for import: you can either use your own external file or download a preformatted template to fill in. If using your own file, select a reference report structure from the platform to map your data in the next step.</p>
+      </header>
 
       <div class="sections">
         <!-- Import setup -->
-        <section class="panel setup">
-          <h2 class="panel-title">Import setup</h2>
-          <div class="panel-body">
+        <section class="sec setup">
+          <h2 class="sec-title">1. Import setup</h2>
+          <div class="sec-body">
             <fieldset class="radio-group strong">
               <legend>File type</legend>
               <div class="radio-row">
@@ -230,28 +212,33 @@
               </div>
             </fieldset>
 
-            <div class="warn-banner" id="customBanner" hidden>
-              <img class="icon-16" src="assets/alert-circle-warning.svg" alt="">
-              <div>
-                <p>For faster import, create a custom template matching your external file's report structure.</p>
-                <a href="#">Click here to create a template</a>
-              </div>
-            </div>
+            <p class="hint-line" id="customBanner" hidden>
+              <img class="icon-16" src="assets/alert-circle-dark.svg" alt="">
+              <span>For faster import, create a custom template matching your external file's report structure. <a href="#">Click here to create a template</a></span>
+            </p>
           </div>
         </section>
 
         <!-- Template selection -->
-        <section class="panel" id="templatePanel" hidden>
-          <h2 class="panel-title">Template selection
+        <section class="sec" id="templatePanel" hidden>
+          <h2 class="sec-title">2. Template selection
             <span class="tip-trigger" tabindex="0" data-tip="Please select a template to fill your data in. The download will be available in the next step." aria-label="About template selection"><img class="icon-16" src="assets/help-circle.svg" alt=""></span>
           </h2>
-          <div class="t-filters">
-            <label class="t-search">
+          <div>
+          <div class="tbl-toolbar">
+            <label class="tbl-search">
               <img class="icon-16" src="assets/search.svg" alt="">
               <input type="search" id="tSearch" placeholder="Search template" aria-label="Search template">
             </label>
-            <div class="t-dropdowns" id="filters"></div>
+            <div class="tbl-tools">
+              <div class="tbl-filters" id="filters"></div>
+              <div class="view-toggle" role="group" aria-label="Table view">
+                <button data-tip="Show or hide columns" aria-label="Show or hide columns"><img class="icon-16" src="assets/tbl-columns.svg" alt=""></button>
+                <button data-tip="Change row layout" aria-label="Change row layout"><img class="icon-16" src="assets/tbl-layout.svg" alt=""></button>
+              </div>
+            </div>
           </div>
+          <div class="tbl-box">
           <div class="t-scroll">
             <table class="t-table">
               <colgroup>
@@ -274,25 +261,27 @@
             </table>
           </div>
           <div class="pagination">
-            <button class="page-cta"><img class="icon-16" src="assets/arrow-left.svg" alt="" style="transform:rotate(180deg)">Previous</button>
+            <button class="page-cta prev" aria-label="Previous page"><img class="icon-16" src="assets/pg-arrow.svg" alt=""></button>
             <div class="pages">
               <button class="page active">1</button><button class="page">2</button><button class="page">3</button>
               <span class="page">...</span>
               <button class="page">8</button><button class="page">9</button><button class="page">10</button>
             </div>
-            <button class="page-cta next">Next<img class="icon-16" src="assets/arrow-right.svg" alt=""></button>
+            <button class="page-cta next" aria-label="Next page"><img class="icon-16" src="assets/pg-arrow.svg" alt=""></button>
+          </div>
+          </div>
           </div>
         </section>
       </div>
 
-      <footer class="footer">
-        <button class="cta" id="cancelBtn">Cancel import</button>
-        <div class="footer-right">
-          <button class="cta" disabled>Return</button>
-          <button class="cta primary" id="nextBtn" disabled>Next step</button>
-        </div>
-      </footer>
     </div>
+    <footer class="footer">
+      <button class="cta neutral" id="cancelBtn">Cancel</button>
+      <div class="footer-right">
+        <button class="cta" disabled aria-label="Back (this is the first step)">Back</button>
+        <button class="cta primary" id="nextBtn" disabled>Next</button>
+      </div>
+    </footer>
   </main>
 </div>
 
@@ -316,7 +305,7 @@
   </div>
 </dialog>
 
-<script src="template-drawer.js?v=10"></script>
+<script src="template-drawer.js?v=20"></script>
 <script>
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -368,8 +357,8 @@
     const rows = visibleTemplates();
     $("#tBody").innerHTML = rows.length ? rows.map(t => `
       <tr data-id="${t.id}" class="${state.selected === t.id ? "selected" : ""}">
-        <td><input type="checkbox" class="checkbox" ${state.selected === t.id ? "checked" : ""} aria-label="Select ${esc(t.name)} (${esc(t.type)}, ${esc(t.entity)}, ${esc(t.protocol)})"></td>
-        <td>${esc(t.name)}</td><td>${esc(t.type)}</td><td>${esc(t.entity)}</td><td>${esc(t.author)}</td>
+        <td><input type="radio" name="template" class="t-radio" ${state.selected === t.id ? "checked" : ""} aria-label="Select ${esc(t.name)} (${esc(t.type)}, ${esc(t.entity)}, ${esc(t.protocol)})"></td>
+        <td class="t-name">${esc(t.name)}</td><td>${esc(t.type)}</td><td>${esc(t.entity)}</td><td>${esc(t.author)}</td>
         <td>${esc(t.protocol)}</td><td>${esc(t.method)}</td>
         <td><button class="action-btn" data-view="${t.id}" aria-label="View template details"><img class="icon-16" src="assets/eye.svg" alt=""></button></td>
       </tr>`).join("") : `<tr class="t-empty"><td colspan="8">No template matches your search.</td></tr>`;
@@ -380,9 +369,9 @@
     const row = e.target.closest("tr[data-id]");
     if (!row) return;
     const id = +row.dataset.id;
-    state.selected = state.selected === id ? null : id;
+    state.selected = id;
     render();
-    $(`tr[data-id="${id}"] .checkbox`)?.focus();
+    $(`tr[data-id="${id}"] .t-radio`)?.focus();
   });
   $("#tSearch").addEventListener("input", e => { state.search = e.target.value; renderTable(); });
 
@@ -441,6 +430,6 @@
 
   render();
 </script>
-<script src="shared.js?v=10"></script>
+<script src="shared.js?v=20"></script>
 </body>
 </html>

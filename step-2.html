@@ -6,98 +6,107 @@
 <title>Import center – Upload file</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css?v=10">
-<link rel="stylesheet" href="flow.css?v=10">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css?v=20">
+<link rel="stylesheet" href="flow.css?v=20">
 <style>
   :root {
     --tapio-green: #2d5c4f;
-    --tapio-info-fill: #e3f3f6;
+    --act-info-fill: #e0f2fe;
+    --act-success-fill: #f0fdfa;
+    --act-success-border: #99f6e4;
+    --act-warn: #b45309;
+    --act-warn-border: #f59e0b;
+    --act-warn-fill: #fffbeb;
   }
 
-  /* Template row */
-  .template-scroll { overflow-x: auto; border-radius: 6px; }
-  .template {
-    display: flex; height: 64px; min-width: 640px; overflow: hidden;
-    background: var(--tapio-blue-gray); border: 1px solid var(--tapio-frost-gray); border-radius: 6px;
-    box-shadow: var(--shadow-xs);
+  /* ---------- Sections ---------- */
+  .sec { display: flex; flex-direction: column; gap: 24px; }
+  .sec-title { font: var(--ts-section-title); letter-spacing: var(--ls-section-title); color: var(--act-ink); }
+  .sec-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+  .sec-head p { margin-top: 4px; font: var(--ts-body); color: #040811; }
+  .sec-head p.ok { font: var(--ts-body-medium); color: var(--tapio-green); }
+
+  /* ---------- File preparation & resources ---------- */
+  .resources { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .resources h3 { font: var(--ts-body-strong); color: var(--act-ink); }
+  .tpl-card {
+    width: min(529px, 100%); display: flex; align-items: center; gap: 8px; padding: 15px;
+    background: var(--act-gray-50); border: 1px solid var(--act-gray-200); border-radius: 8px;
   }
-  .template > div { display: flex; align-items: center; padding: 16px; border-right: 1px solid var(--tapio-frost-gray); font-size: 16px; line-height: 24px; white-space: nowrap; }
-  .template .t-name { flex: 1 0 0; min-width: 0; }
-  .template .t-tags { flex: 1 0 0; min-width: 0; padding: 0; border-right: 0; }
-  .template .t-tags span { flex: 1 0 0; min-width: 0; height: 100%; display: flex; align-items: center; justify-content: center; padding: 16px; border-right: 1px solid var(--tapio-frost-gray); }
-  .template .t-tags span:last-child { flex: none; }
-  .template .t-action { border-right: 0; }
-  .eye-btn {
+  .tpl-text { flex: 1; min-width: 0; }
+  .tpl-name { font: var(--ts-body-sm-bold); color: var(--act-ink); }
+  .tpl-meta { font: var(--ts-label); color: #4b5563; }
+  .tpl-actions { display: flex; gap: 4px; }
+  .eye-btn, .dl-btn {
     width: 32px; height: 32px; padding: 8px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); box-shadow: var(--shadow-xs);
+    background: var(--tapio-white); border: 1px solid var(--act-gray-200); box-shadow: var(--shadow-xs);
   }
   .eye-btn .on { display: none; }
-  .eye-btn:hover, .eye-btn[aria-pressed="true"] { background: var(--tapio-dark-navy); }
+  .eye-btn:hover, .eye-btn[aria-pressed="true"] { background: var(--act-nav-bg); border-color: var(--act-nav-bg); }
   .eye-btn:hover .off, .eye-btn[aria-pressed="true"] .off { display: none; }
   .eye-btn:hover .on, .eye-btn[aria-pressed="true"] .on { display: block; }
-
-  /* Instructions */
-  .instructions { display: flex; flex-direction: column; gap: 16px; }
-  .instr-list { display: flex; flex-direction: column; gap: 8px; }
-  .instr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 4px 0; font-size: 14px; line-height: 20px; }
-  .instr.tall { padding: 6px 0; }
-  .instr a {
-    margin-left: 4px; color: var(--tapio-dark-navy); font-weight: 500; text-decoration: none;
-    border-bottom: 1px solid var(--tapio-dark-navy);
-  }
+  .dl-btn:hover { background: var(--act-gray-50); }
+  .res-list { list-style: disc; padding-left: 21px; display: flex; flex-direction: column; gap: 8px; font: var(--ts-body); color: #040811; }
+  .res-list a { margin-left: 8px; font: var(--ts-body-medium); font-size: 14px; color: #063599; }
   .info-banner {
-    display: flex; align-items: center; gap: 8px; padding: 10px 16px;
-    background: var(--tapio-info-fill); border-radius: 8px;
-    font-size: 14px; line-height: 20px;
+    align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    background: var(--act-info-fill); border-radius: 8px; font: var(--ts-body-medium); color: #02171b;
   }
 
-  /* Upload */
+  /* ---------- Upload area ---------- */
   .upload {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    min-height: 84px; padding: 15px 32px; cursor: pointer;
-    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 4px;
-    text-align: center; transition: border-color .15s, background .15s;
+    min-height: 364px; padding: 32px; cursor: pointer; text-align: center;
+    background: var(--act-gray-50); border: 1px dashed #d1d5db; border-radius: 12px;
+    transition: border-color .15s, background .15s;
   }
-  .upload:hover, .upload:focus-within { border-color: var(--tapio-midnight-blue); }
-  .upload.drag { border-color: var(--tapio-dark-navy); background: var(--tapio-powder-blue); }
-  .upload strong { font-size: 16px; line-height: 24px; font-weight: 500; }
-  .upload small { font-size: 14px; line-height: 20px; color: var(--tapio-charcoal-blue); }
+  .upload:hover, .upload:focus-within { border-color: var(--act-teal); background: var(--act-success-fill); }
+  .upload.drag { border-style: solid; border-color: var(--act-teal); background: var(--act-success-fill); }
+  .upload .up-ico {
+    width: 40px; height: 40px; margin-bottom: 8px; border-radius: 20px;
+    display: flex; align-items: center; justify-content: center; background: var(--tapio-white); border: 1px solid var(--act-gray-200);
+  }
+  .upload strong { font: var(--ts-section-title); letter-spacing: var(--ls-section-title); color: #042f2e; }
+  .upload small { font: var(--ts-body); color: #4b5563; }
+  .upload .browse { margin-top: 12px; pointer-events: none; }
   .upload input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-  .file {
-    display: flex; align-items: center; justify-content: space-between;
-    min-height: 84px; padding: 15px 32px;
-    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 4px;
-  }
-  .file-name { font-size: 20px; line-height: 28px; font-weight: 500; }
-  .file-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 14px; line-height: 20px; color: var(--tapio-charcoal-blue); }
-  .file-meta i { width: 2px; height: 2px; border-radius: 1px; background: var(--tapio-charcoal-blue); }
 
-  .t-actions { display: flex; }
-  .t-actions .eye-btn:has(+ .dl-btn:not([hidden])) { border-radius: 8px 0 0 8px; }
-  .dl-btn {
-    width: 32px; height: 32px; padding: 8px; display: flex; align-items: center; justify-content: center;
-    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-left: 0; border-radius: 0 8px 8px 0;
-    box-shadow: var(--shadow-xs);
+  .uploaded {
+    display: flex; flex-direction: column; align-items: center; gap: 24px;
+    min-height: 364px; padding: 78px 32px 32px; text-align: center;
+    background: var(--act-success-fill); border: 1px solid var(--act-success-border); border-radius: 12px;
+    animation: uploaded-in .25s ease-out;
   }
-  .dl-btn:hover { background: var(--tapio-powder-blue); }
+  @keyframes uploaded-in { from { opacity: 0; transform: translateY(4px); } }
+  .ok-mark { width: 40px; height: 40px; margin: 0 auto 12px; border-radius: 20px; background: var(--act-success-border) url("assets/check.svg") center / 22px no-repeat; }
+  .uploaded h3 { font: var(--ts-card-title); letter-spacing: var(--ls-card-title); color: #042f2e; }
+  .uploaded p { margin-top: 4px; font: var(--ts-body); color: #042f2e; }
+  .file {
+    width: min(500px, 100%); display: flex; align-items: center; gap: 16px; padding: 17px 15px; text-align: left;
+    background: var(--tapio-white); border: 1px solid var(--act-gray-200); border-radius: 8px;
+  }
+  .file-ico { width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #ccfbf1; }
+  .file-text { flex: 1; min-width: 0; }
+  .file-name { font: var(--ts-section-title); letter-spacing: var(--ls-section-title); color: var(--act-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-meta { margin-top: 4px; font: var(--ts-body); color: #4b5563; }
 
   /* ---------- Template's excel file modal ---------- */
-  .xl-head { padding: 32px 32px 15px; flex-direction: column; align-items: stretch; gap: 8px; }
+  .xl-head { padding: 32px 32px 0; flex-direction: column; align-items: stretch; gap: 8px; }
   .xl-head .xl-title { display: flex; align-items: center; justify-content: space-between; }
-  .xl-step { font-size: 16px; line-height: 24px; font-weight: 500; }
-  .xl-desc { font-size: 16px; line-height: 24px; color: var(--tapio-charcoal-blue); }
+  .xl-step { font: var(--ts-body-medium); color: var(--act-ink); }
+  .xl-desc { font: var(--ts-body); color: #4b5563; }
   .xl-body { padding: 0 32px 24px; display: flex; flex-direction: column; gap: 24px; }
   .xl-heading {
-    display: flex; align-items: center; gap: 4px; padding: 8px 0 15px; border-bottom: 1px solid var(--tapio-frost-gray);
-    font-size: 16px; line-height: 24px; font-weight: 500;
+    display: flex; align-items: center; gap: 4px; padding-bottom: 15px; border-bottom: 1px solid var(--act-gray-200);
+    font: var(--ts-body-strong); color: var(--act-ink);
   }
   .xl-cols { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(9, auto); gap: 8px; padding: 0 16px; }
-  .xl-cols label { display: flex; align-items: center; gap: 16px; font-size: 16px; line-height: 24px; font-weight: 500; cursor: pointer; }
+  .xl-cols label { display: flex; align-items: center; gap: 16px; font: var(--ts-body-medium); color: #040811; cursor: pointer; }
   .xl-cols .checkbox { margin: 0; flex-shrink: 0; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chips:empty::before { content: attr(data-empty); font-size: 14px; line-height: 20px; color: var(--tapio-charcoal-blue); }
+  .chips:empty::before { content: attr(data-empty); font: var(--ts-label); color: #4b5563; }
   .chip {
     display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;
     background: var(--tapio-white); border: 2px solid var(--c, var(--tapio-frost-gray)); border-radius: 6px;
@@ -111,66 +120,135 @@
   .chip-x img { width: 10px; height: 10px; }
   .xl-search {
     display: flex; align-items: center; gap: 4px; height: 40px; padding: 8px;
-    border: 1px solid var(--tapio-frost-gray); border-radius: 6px; box-shadow: var(--shadow-xs); font-size: 16px; line-height: 24px;
+    border: 1px solid var(--act-gray-200); border-radius: 6px; box-shadow: var(--shadow-xs); font: var(--ts-body);
   }
   .xl-search:focus-within { border-color: var(--tapio-midnight-blue); }
   .xl-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; color: var(--tapio-deep-indigo); }
-  .xl-search input::placeholder { color: var(--tapio-charcoal-blue); opacity: 1; }
+  .xl-search input::placeholder { color: #4b5563; opacity: 1; }
   .xl-tabs { display: flex; gap: 16px; height: 56px; overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--tapio-frost-gray); scrollbar-width: thin; }
   .xl-tab {
     display: flex; align-items: center; gap: 8px; flex-shrink: 0; height: 55px; border-bottom: 2px solid transparent;
-    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--tapio-charcoal-blue); white-space: nowrap;
+    font: var(--ts-column-header); color: #4b5563; white-space: nowrap;
   }
-  .xl-tab[aria-selected="true"] { color: var(--tapio-deep-indigo); border-bottom-color: var(--tapio-dark-navy); }
+  .xl-tab[aria-selected="true"] { color: var(--act-ink); border-bottom-color: var(--act-teal); }
   .xl-tab i { width: 8px; height: 8px; border-radius: 4px; background: var(--c); }
   .xl-foot { justify-content: space-between; }
   .xl-foot .right { display: flex; gap: 16px; margin-left: auto; }
 
   /* ---------- Column mapping ---------- */
-  .map-row { display: grid; grid-template-columns: 1fr 48px 1fr; }
-  .map-row > div {
-    height: 64px; padding: 0 16px; display: flex; align-items: center;
-    border-bottom: 1px solid var(--tapio-frost-gray);
+  .automap { padding: 6px 16px; }
+  .automap img { width: 16px; height: 16px; }
+  .dup-banner {
+    display: flex; align-items: flex-start; gap: 8px; padding: 10px 16px;
+    background: var(--act-warn-fill); border: 1px solid #fde68a; border-radius: 8px;
+    font: var(--ts-body-medium); color: var(--act-ink);
   }
+  .dup-banner img { margin-top: 2px; }
+  .dup-banner b { font-weight: 600; }
+  .dup-banner ul { margin-top: 2px; padding-left: 18px; }
+  .map-table { border: 1px solid var(--act-gray-200); border-radius: 8px; background: var(--tapio-white); }
+  .map-row { display: grid; grid-template-columns: minmax(64px, 96fr) minmax(0, 488fr) 48px minmax(0, 488fr); }
+  .map-row > div { height: 64px; display: flex; align-items: center; border-bottom: 1px solid var(--act-gray-200); }
   .map-row:last-child > div { border-bottom: 0; }
-  .map-head { font-weight: 600; color: var(--tapio-charcoal-blue); gap: 4px; }
-  .map-label { flex-direction: column; align-items: flex-start !important; justify-content: center; gap: 4px; }
-  .map-label .name { display: flex; align-items: center; gap: 4px; font-size: 16px; line-height: 24px; font-weight: 500; white-space: nowrap; }
-  .map-label .crit { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--tapio-red); }
-  .map-label .crit.ok { color: var(--tapio-green); }
-  .map-arrow { justify-content: center; }
+  .map-row.head > div { background: var(--act-gray-50); }
+  .map-row.head > div:first-child { border-top-left-radius: 8px; }
+  .map-row.head > div:last-child { border-top-right-radius: 8px; }
+  .map-head { gap: 4px; padding: 0 16px; font: var(--ts-column-header); color: var(--act-ink); white-space: nowrap; }
+  .map-head.c, .map-status, .map-arrow { justify-content: center; }
+  /* Line header text up with the text inside the cells below (dropdown: 16px cell + 11px inner; label: 8px cell + 16px inner) */
+  .map-row.head > .map-head:nth-child(2) { padding-left: 27px; }
+  .map-row.head > .map-head:nth-child(4) { padding-left: 24px; }
+  .map-select { padding: 0 16px; }
+  .map-label { padding: 0 8px; }
+  .label-box {
+    flex: 1; min-width: 0; height: 40px; display: flex; align-items: center; gap: 4px; padding: 0 16px;
+    background: var(--tapio-alice-blue); border-radius: 8px;
+    font: var(--ts-body-medium); color: #040811; white-space: nowrap;
+  }
+  .label-box span { overflow: hidden; text-overflow: ellipsis; }
+  .static-ico { display: inline-flex; }
 
+  /* Mapping status: red = required & unmapped, orange = optional & unmapped, warning = duplicate, green = mapped */
+  .st-btn { display: inline-flex; border-radius: 50%; cursor: help; }
+  .st-btn:focus-visible { outline: 2px solid var(--tapio-midnight-blue); outline-offset: 2px; }
+  .st { width: 16px; height: 16px; flex-shrink: 0; border-radius: 16px; position: relative; overflow: hidden; }
+  .st img { position: absolute; left: 7px; top: 2.285px; width: 2px; height: 9.515px; }
+  .st.red { background: var(--tapio-red); }
+  .st.orange { background: #ff8d28; }
+  .st.green { background: var(--tapio-green) url("assets/green-check.svg") center / 9.6px no-repeat; }
+  .st.dup { border-radius: 0; background: url("assets/warning-circle-amber.svg") center / 16px no-repeat; }
+
+  /* Excel column dropdown */
   .select { position: relative; width: 100%; }
   .select-btn {
-    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 7px 8px; text-align: left;
-    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 8px;
-    box-shadow: var(--shadow-xs);
-    font-size: 16px; line-height: 24px; color: var(--tapio-charcoal-blue);
+    width: 100%; height: 38px; display: flex; align-items: center; gap: 8px;
+    padding: 0 8px 0 10px; text-align: left;
+    background: var(--tapio-white); border: 1px solid var(--act-gray-200); border-radius: 6px;
+    box-shadow: var(--shadow-xs); font: var(--ts-body); color: #4b5563;
+    transition: border-color .15s, background .15s;
   }
-  .select-btn.filled { color: var(--tapio-deep-indigo); }
+  .select-btn:hover { border-color: #cbd5e1; }
+  .select-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .select-btn.filled { color: var(--act-ink); }
+  .select-btn.excluded .select-value { color: var(--tapio-charcoal-blue); font-style: italic; }
+  .select-btn.error { border-color: #d9534f; }
+  .select-btn.dup { border-color: var(--act-warn-border); background: var(--act-warn-fill); }
+  .dup-tag {
+    flex-shrink: 0; padding: 0 6px; border-radius: 4px; background: #fef3c7;
+    font-size: 12px; line-height: 18px; font-weight: 600; color: var(--act-warn);
+  }
   .select-btn:focus-visible, .select.open .select-btn { outline: none; border-color: var(--tapio-midnight-blue); }
-  .select.open .select-btn img { transform: rotate(180deg); }
+  .select.open .select-btn > img { transform: rotate(180deg); }
+
+  .map-table .select-menu {
+    left: auto; right: 0; width: min(380px, 100%); max-height: 320px; gap: 2px; padding: 8px; overflow-x: hidden;
+    border-color: var(--act-gray-200); box-shadow: var(--shadow-md);
+  }
+  .menu-search {
+    display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 8px; margin-bottom: 4px; flex-shrink: 0;
+    border: 1px solid var(--act-gray-200); border-radius: 6px;
+  }
+  .menu-search:focus-within { border-color: var(--tapio-midnight-blue); }
+  .menu-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: var(--ts-body); color: var(--act-ink); }
+  .menu-search input::placeholder { color: var(--tapio-charcoal-blue); opacity: 1; }
+  .map-table .select-menu [role="option"] {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0;
+    padding: 8px 12px; border: 1px solid transparent; border-radius: 6px; font: var(--ts-body); color: var(--act-ink);
+  }
+  .map-table .select-menu [role="option"]:hover,
+  .map-table .select-menu [role="option"].active { background: #f3f4f6; border-color: #f3f4f6; }
+  .map-table .select-menu [role="option"][aria-selected="true"] { background: var(--sky-100); border-color: var(--sky-100); font: var(--ts-body-medium); color: var(--sky-950); }
+  .map-table .select-menu [role="option"][hidden] { display: none; }
+  .map-table .select-menu [role="option"] > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opt-used { flex-shrink: 0; white-space: nowrap; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--act-warn); }
+  .opt-empty { padding: 8px 12px; font: var(--ts-label); color: #4b5563; }
+
+  #confirmModal .modal-body h3 { font: var(--ts-body-sm-bold); color: #4b5563; }
+  #confirmModal .modal-body .dups li::before { background: var(--act-warn-border); }
 
   /* ---------- Responsive ---------- */
   @media (max-width: 768px) {
-    .file { padding: 15px 16px; gap: 12px; }
-    .file-name { font-size: 16px; line-height: 24px; word-break: break-all; }
-    .upload { padding: 15px 16px; }
+    .upload, .uploaded { min-height: 0; padding: 32px 16px; }
+    .uploaded h3 { font-size: 20px; }
   }
   @media (max-width: 640px) {
     .xl-cols { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none; padding: 0; }
     .xl-head { padding: 20px 20px 15px; }
     .xl-body { padding: 0 20px 20px; }
     .xl-foot .right { width: 100%; }
-    .map-row { grid-template-columns: 1fr; padding: 12px 16px; gap: 8px; border-bottom: 1px solid var(--tapio-frost-gray); }
+    .map-row { grid-template-columns: 40px minmax(0, 1fr); padding: 8px 0 12px; border-bottom: 1px solid var(--act-gray-200); }
     .map-row:last-child { border-bottom: 0; }
-    .map-row > div { height: auto; padding: 0; border-bottom: 0; }
-    .map-row:first-child > div:nth-child(n+2) { display: none; }
+    .map-row > div { height: auto; border-bottom: 0; }
+    .map-row.head { display: none; }
     .map-row .map-arrow { display: none; }
-    .map-label .name { white-space: normal; }
+    .map-row .map-status { grid-row: 1; grid-column: 1; }
+    .map-row .map-label { grid-row: 1; grid-column: 2; padding: 0 8px 6px 0; }
+    .map-row .map-select { grid-row: 2; grid-column: 2; padding: 0 8px 0 0; }
+    .label-box { height: auto; padding: 0; background: none; }
+    .map-table .select-menu { width: 100%; }
   }
 </style>
+
 </head>
 <body>
 <div class="app">
@@ -180,17 +258,17 @@
     <div>
       <div class="nav-company">
         <div class="nav-company-id">
-          <img src="assets/company-logo.png" alt="">
+          <img src="assets/act-logo.png" alt="">
           <span>Company name</span>
         </div>
-        <button class="nav-dots" aria-label="More options"><img class="icon-16" src="assets/dots-vertical.svg" alt=""></button>
+        <button class="nav-dots" aria-label="More options"><img class="icon-16" src="assets/act-dots.svg" alt=""></button>
       </div>
       <div class="sep"></div>
     </div>
 
     <div class="nav-search-wrap">
       <div class="nav-search">
-        <img class="icon-16" src="assets/search-light.svg" alt="">
+        <img class="icon-16" src="assets/act-search.svg" alt="">
         <span>Switch companies</span>
       </div>
     </div>
@@ -203,8 +281,8 @@
 
         <div>
           <button class="nav-cta open">
-            <span class="lbl"><img class="icon-24" src="assets/understand.svg" alt="">Understand</span>
-            <img class="icon-24 chev" src="assets/chevron-nav.svg" alt="">
+            <span class="lbl"><img class="icon-24 p2" src="assets/act-understand.svg" alt="">Understand</span>
+            <img class="icon-24 chev" src="assets/act-chev-a.svg" alt="">
           </button>
           <div class="nav-sub">
             <a href="#">Project manager</a>
@@ -216,24 +294,24 @@
         </div>
 
         <button class="nav-cta">
-          <span class="lbl"><img class="icon-24" src="assets/act.svg" alt="">Act</span>
-          <img class="icon-24" src="assets/chevron-nav2.svg" alt="">
+          <span class="lbl"><img class="icon-24" src="assets/act-act.svg" alt="">Act</span>
+          <img class="icon-24" src="assets/act-chev-a.svg" alt="">
         </button>
         <button class="nav-cta">
-          <span class="lbl"><img class="icon-24" src="assets/engage.svg" alt="">Engage</span>
-          <img class="icon-24" src="assets/chevron-nav2.svg" alt="">
+          <span class="lbl"><img class="icon-24 p2" src="assets/act-engage.svg" alt="">Engage</span>
+          <img class="icon-24" src="assets/act-chev-a.svg" alt="">
         </button>
       </nav>
 
       <div class="nav-bottom">
         <div class="nav-bottom-links">
           <div class="sep"></div>
-          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/book-closed.svg" alt="">User guide</span></button>
-          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/microscope.svg" alt="">Our methodology</span></button>
-          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/shield.svg" alt="">Privacy</span></button>
-          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/virus.svg" alt="">Report bug</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-book.svg" alt="">User guide</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-microscope.svg" alt="">Our methodology</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-shield.svg" alt="">Privacy</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-virus.svg" alt="">Report bug</span></button>
         </div>
-        <button class="nav-collapse" aria-label="Collapse navigation"><img class="icon-16" src="assets/chevron-left-double.svg" alt=""></button>
+        <button class="nav-collapse" aria-label="Collapse navigation"><img class="icon-16" src="assets/act-collapse.svg" alt=""></button>
       </div>
     </div>
   </aside>
@@ -243,119 +321,124 @@
       <button class="icon-btn menu-btn" aria-label="Open navigation"><img class="icon-16" src="assets/chevron-left-double.svg" alt=""></button>
       <div class="crumbs">
         <span>Home</span>
-        <img class="icon-20 chev" src="assets/chevron-breadcrumb.svg" alt="">
-        <strong>Import center</strong>
+        <img class="icon-20 chev" src="assets/act-crumb-chev.svg" alt="">
+        <strong>Import</strong>
       </div>
       <div class="top-actions">
-        <button class="icon-btn" aria-label="Hide"><img class="icon-16" src="assets/eye-off.svg" alt=""></button>
-        <button class="icon-btn" aria-label="Notifications"><img class="icon-16" src="assets/bell.svg" alt=""></button>
-        <button class="icon-btn" aria-label="Language"><img class="icon-16" src="assets/flag-fr.svg" alt=""></button>
-        <img class="avatar" src="assets/avatar.png" alt="User avatar">
+        <button class="icon-btn" aria-label="Hide"><img class="icon-16" src="assets/act-eye-off.svg" alt=""></button>
+        <button class="icon-btn" aria-label="Notifications"><img class="icon-16" src="assets/act-bell.svg" alt=""></button>
+        <button class="icon-btn" aria-label="Language"><img class="icon-16" src="assets/act-flag-fr.svg" alt=""></button>
+        <img class="avatar" src="assets/act-avatar.png" alt="User avatar">
       </div>
     </header>
 
     <div class="container">
       <!-- Stepper -->
-      <section class="stepper-card">
-        <h1 class="stepper-title">Import your data</h1>
-        <div class="steps">
-          <div class="step"><small>Completed</small><span>1. Setup</span></div>
-          <div class="step current"><small>In progress</small><span>2. Upload file</span></div>
-          <div class="step todo"><small>Incomplete</small><span>3. Data verification</span></div>
-        </div>
-        <div class="stepper-body">
-          <p>Upload your file to the platform. If using an external file, map the columns of your Excel file to the selected report structure from Step 1 to ensure accurate alignment. Columns such as <b>Site</b>, <b>Year</b>, <b>Particularity</b>, <b>Main Steps</b>, <b>Form Sections</b>, and <b>Sub Sections</b> must be mapped for successful processing. Mapping other columns is optional, but any unmapped columns will not be imported.</p>
-          <div class="note"><img class="icon-16" src="assets/alert-circle-dark.svg" alt="">In this step, data is only loaded, not imported. Importing occurs in Step 3 and may involve a loading time.</div>
-        </div>
-      </section>
+      <nav class="flow-steps" aria-label="Import steps">
+        <ol>
+          <li><a class="flow-step done" href="step-1.html"><img class="icon-20" src="assets/step-check-teal.svg" alt="">1. Setup<span class="sr-only"> (completed, go back)</span></a></li>
+          <li class="flow-chev" aria-hidden="true"><img class="icon-20" src="assets/step-chevron.svg" alt=""></li>
+          <li class="flow-step current" aria-current="step"><img class="icon-20" src="assets/step-circle-white.svg" alt="">2. Upload file</li>
+          <li class="flow-chev" aria-hidden="true"><img class="icon-20" src="assets/step-chevron.svg" alt=""></li>
+          <li class="flow-step"><img class="icon-20" src="assets/step-circle.svg" alt="">3. Data verification</li>
+        </ol>
+      </nav>
+      <header class="task-intro">
+        <h1 id="introTitle">Upload &amp; map your data</h1>
+        <p id="introDesc">Connect your Excel columns to the report structure selected in Setup.</p>
+      </header>
 
       <div class="sections">
-        <!-- Import file -->
-        <section class="panel">
-          <h2 class="panel-title">Import file</h2>
-          <div class="panel-body">
-            <div class="block" id="templateBlock">
-              <h3 class="section-title" id="templateTitle">1. Download your excel structured file</h3>
-              <div class="template-scroll">
-              <div class="template">
-                <div class="t-name" id="tName">Template name</div>
-                <div class="t-tags" id="tTags"><span>Default</span><span>City</span><span>Tapio</span><span>Bilan carbone</span></div>
-                <div class="t-action">
-                  <div class="t-actions">
-                    <button class="eye-btn" id="previewBtn" aria-pressed="false" aria-label="View template details">
-                      <img class="icon-16 off" src="assets/eye-dark.svg" alt="">
-                      <img class="icon-16 on" src="assets/eye-light.svg" alt="">
-                    </button>
-                    <button class="dl-btn" id="downloadBtn" aria-label="Download template excel file" hidden><img class="icon-16" src="assets/download-cloud.svg" alt=""></button>
-                  </div>
-                </div>
+        <!-- Upload file -->
+        <section class="sec">
+          <h2 class="sec-title">1. Upload file</h2>
+          <div class="resources">
+            <h3>File preparation &amp; resources</h3>
+            <div class="tpl-card" id="templateCard">
+              <div class="tpl-text">
+                <p class="tpl-name" id="tName">Template name</p>
+                <p class="tpl-meta" id="tMeta">Default - City - Tapio - Bilan carbone</p>
               </div>
+              <div class="tpl-actions">
+                <button class="eye-btn" id="previewBtn" aria-pressed="false" aria-label="View template details">
+                  <img class="icon-16 off" src="assets/eye-dark.svg" alt="">
+                  <img class="icon-16 on" src="assets/eye-light.svg" alt="">
+                </button>
+                <button class="dl-btn" id="downloadBtn" aria-label="Download template excel file"><img class="icon-16" src="assets/download-cloud.svg" alt=""></button>
               </div>
             </div>
-
-            <div class="block">
-              <h3 class="section-title" id="fillTitle">2. Fill in the data manually and save</h3>
-              <div class="instructions">
-                <div class="instr-list">
-                  <div class="instr"><img class="icon-16" src="assets/locked.svg" alt="">Data from locked or aggregated reports will not be imported. Please ensure the relevant reports are unlocked.</div>
-                  <div class="instr tall"><img class="icon-16" src="assets/file-02.svg" alt="">Verify that each row in your excel file represent the information for one activity data</div>
-                  <div class="instr" id="descValueNote" hidden><img class="icon-16" src="assets/help-circle-dark.svg" alt="">Data with both description &amp; value missing will be excluded from the import. Please check carefully before upload.</div>
-                  <div class="instr"><img class="icon-16" src="assets/database-01.svg" alt="">Need to access the Emission factor database? <a href="#">Click here</a></div>
-                  <div class="instr tall"><img class="icon-16" src="assets/file-check-02.svg" alt="">Check and save your data.</div>
-                </div>
-                <div class="info-banner">
-                  <img class="icon-16" src="assets/alert-circle-banner.svg" alt="">
-                  <div>
-                    <p>It is required that each activity data has at least their site, year, main step, form section &amp; sub section in order to be imported in the platform.</p>
-                    <p>If data is missing for any of these columns, you will be able to correct it in the next step before importing your file.</p>
-                  </div>
-                </div>
-              </div>
+            <ul class="res-list">
+              <li>Data from locked or aggregated reports will not be imported. Unlock all relevant reports before importing.</li>
+              <li>Ensure each Excel row contains data for a single activity.</li>
+              <li id="descValueNote" hidden>Data with both description &amp; value missing will be excluded from the import. Please check carefully before upload.</li>
+              <li>To access Emission factor database<a href="#">Click here</a></li>
+              <li>Check and save your data.</li>
+            </ul>
+            <div class="info-banner">
+              <img class="icon-16" src="assets/alert-circle-banner.svg" alt="">
+              <p>To import activity data, include the site, year, main step, form section, and subsection for each entry.</p>
             </div>
+          </div>
 
-            <div class="block">
-              <h3 class="section-title" id="uploadTitle">3. Upload file</h3>
-              <label class="upload" id="dropzone">
-                <input type="file" id="fileInput" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                <strong>Upload file</strong>
-                <small>Allowed file format: CSV, xlsx<br>Max file size 10 GB</small>
-              </label>
-              <div class="file" id="fileCard" hidden>
-                <div>
-                  <div class="file-name" id="fileName">File name</div>
-                  <div class="file-meta"><span id="fileSize">File size</span><i></i><span id="fileFormat">File format</span></div>
-                </div>
-                <button class="icon-btn" id="removeFile" aria-label="Remove file"><img class="icon-16" src="assets/trash.svg" alt=""></button>
+          <label class="upload" id="dropzone">
+            <input type="file" id="fileInput" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <span class="up-ico"><img class="icon-20" src="assets/download-cloud.svg" alt=""></span>
+            <strong>Drag &amp; drop your file here</strong>
+            <small>Supported file format: CSV, xlsx · Max file size 10 GB</small>
+            <span class="cta neutral browse">Browse files</span>
+          </label>
+          <div class="uploaded" id="fileCard" hidden>
+            <div>
+              <div class="ok-mark" aria-hidden="true"></div>
+              <h3>File uploaded successfully</h3>
+              <p id="uploadedNote">Your file is ready for column mapping.</p>
+            </div>
+            <div class="file">
+              <span class="file-ico"><img class="icon-24" src="assets/file-check-02.svg" alt=""></span>
+              <div class="file-text">
+                <div class="file-name" id="fileName">File name</div>
+                <div class="file-meta" id="fileMeta">XLSX · 0 KB</div>
               </div>
+              <button class="icon-btn" id="removeFile" aria-label="Remove file"><img class="icon-16" src="assets/trash.svg" alt=""></button>
             </div>
           </div>
         </section>
 
-        <!-- Column mapping (external file only) -->
-        <section class="panel" id="mappingPanel">
-          <h2 class="panel-title">Column mapping</h2>
-          <div id="mapping">
-            <div class="map-row">
-              <div class="map-head">Platform's data base
-                <button class="tip-trigger" data-tip="These are the columns the platform recognizes, your excel columns need to be mapped to one of these platform’s columns." aria-label="About platform's data base"><img class="icon-16" src="assets/help-circle.svg" alt=""></button>
+        <!-- Column mapping (external file only, once a file is uploaded) -->
+        <section class="sec" id="mappingPanel">
+          <div class="sec-head">
+            <div>
+              <h2 class="sec-title">2. Column mapping</h2>
+              <p id="mapProgress">Map the 5 required fields to continue.</p>
+            </div>
+            <button class="cta automap" id="autoMap" data-tip="Matches your Excel column names to the platform's fields. Only empty fields are filled, so review the result before continuing.">Auto-map columns</button>
+          </div>
+          <div class="dup-banner" id="dupBanner" role="status" hidden></div>
+          <div class="map-table" id="mapping">
+            <div class="map-row head">
+              <div class="map-head c">Status
+                <button class="tip-trigger" data-tip="Red: required field not mapped yet. Orange: optional field not mapped. Warning: the same Excel column is used for more than one field. Green: mapped." aria-label="About status"><img class="icon-16" src="assets/help-circle.svg" alt=""></button>
+              </div>
+              <div class="map-head">Column in your Excel file
+                <button class="tip-trigger" data-tip="The dropdown contains all your excel columns. You need to map them to the platform’s columns correctly. Be extra careful to map the critical columns as without them, the data can’t be imported." aria-label="About excel columns"><img class="icon-16" src="assets/help-circle.svg" alt=""></button>
               </div>
               <div></div>
-              <div class="map-head">Excel columns
-                <button class="tip-trigger" data-tip="The dropdown contains all your excel columns. You need to map them to the platform’s columns correctly. Be extra careful to map the critical columns as without them, the data can’t be imported." aria-label="About excel columns"><img class="icon-16" src="assets/help-circle.svg" alt=""></button>
+              <div class="map-head">Platform's fields
+                <button class="tip-trigger" data-tip="These are the columns the platform recognizes, your excel columns need to be mapped to one of these platform’s columns." aria-label="About platform's fields"><img class="icon-16" src="assets/help-circle.svg" alt=""></button>
               </div>
             </div>
           </div>
         </section>
       </div>
 
-      <footer class="footer">
-        <button class="cta" id="cancelBtn">Cancel import</button>
-        <div class="footer-right">
-          <button class="cta" onclick="location.href='step-1.html'">Return</button>
-          <button class="cta primary" id="uploadBtn" disabled>Upload data</button>
-        </div>
-      </footer>
     </div>
+    <footer class="footer">
+      <button class="cta neutral" id="cancelBtn">Cancel</button>
+      <div class="footer-right">
+        <button class="cta" onclick="location.href='step-1.html'">Back</button>
+        <button class="cta primary" id="uploadBtn" disabled>Next</button>
+      </div>
+    </footer>
   </main>
 </div>
 
@@ -367,8 +450,8 @@
       <button class="modal-close" data-close aria-label="Close"><img src="assets/x-close.svg" alt=""></button>
     </div>
     <div class="modal-body">
-      <p>Proceed with import? The following columns have not been mapped. As a result, the data in these columns will not be imported into the platform.</p>
-      <ul id="unmappedList"></ul>
+      <p id="confirmLead">Proceed with import? Please review the following before continuing.</p>
+      <div id="confirmLists" class="modal-top" style="gap:16px"></div>
     </div>
     <div class="modal-foot">
       <button class="cta" data-close>Cancel</button>
@@ -456,77 +539,138 @@
   </div>
 </dialog>
 
-<script src="template-drawer.js?v=10"></script>
+<script src="template-drawer.js?v=20"></script>
 <script>
   /* ---------- Data ---------- */
+  const DO_NOT_INCLUDE = "Do not include";
+  // Header row of the uploaded file (prototype sample).
   const EXCEL_COLUMNS = [
-    "Do not include", "Site", "Date début", "Date fin", "Drivers", "Form sections", "Sections", "Name",
-    "Facteurs d'emissions", "Valeur", "Incertitude", "Commentaire", "Durée de vie", "Date d'acquisition"
+    "Site name", "Reporting year", "Main step", "Form section", "Sub section", "Activity description",
+    "Particularity", "Emission factor", "EF value (kgCO2e)", "Uncertainty %", "Comments", "Supplier", "Cost centre", "Notes"
   ];
+  // Rows and order follow the redesigned mapping table. `tip: null` = the design has no tooltip text yet.
+  // `match` drives auto-mapping against the Excel column names.
   const FIELDS = [
-    { name: "Site", critical: true, tip: "The site represents a specific branch or office location within your organization." },
-    { name: "Start date", critical: true, tip: "The beginning of reporting period." },
-    { name: "End date", critical: true, tip: "The end of reporting period." },
-    { name: "Main Steps", critical: true, tip: "Categories for various areas where greenhouse gas (GHG) emissions occur, and they help organizations systematically measure, report, and manage their emissions." },
-    { name: "Form Sections", critical: true, tip: "Form sections group related data in your report, such as sub sections, & their emission sources, ensuring a structured and consistent carbon report." },
-    { name: "Sub Sections", critical: true, value: "Sections", tip: "Represents a specific category of emissions within your carbon report, where activity data is entered. It helps structure your data based on emission sources like energy use, transportation, or purchased goods, ensuring accurate tracking and reporting." },
-    { name: "Description", value: "Name", tip: "The name of the activity data" },
-    { name: "Particularity", value: "Do not include", tip: "Distinctions made for reports of same site for same year." },
-    { name: "Emission factor (EF) name", value: "Facteurs d'emissions", tip: "An Emission Factor (EF) converts activity data, like fuel or energy use, into greenhouse gas emissions for accurate carbon reporting." },
-    { name: "EF value", value: "Valeur", tip: "EF value represents the amount of greenhouse gas emissions associated with a specific activity or resource. It is expressed as emissions per unit of activity, such as kilograms of CO₂-equivalent per kWh of electricity used or per liter of fuel consumed. Emission factors help calculate and track the environmental impact of activities and are key to carbon accounting and sustainability reporting." },
-    { name: "Uncertainty", value: "Incertitude", tip: "Uncertainty represents the potential variability or inaccuracy in emission or activity data, reflecting limitations in measurement, estimation, or data quality." },
-    { name: "Comments", value: "Commentaire", tip: "Remarks left, for an activity data" },
-    { name: "Lifetime", tip: "The amount of years that the asset’s use and impact is divided into." },
-    { name: "Acquisition date", tip: "The year of purchase of the fixed asset." }
+    { name: "Site", critical: true, match: /\bsite/i, tip: "The site represents a specific branch or office location within your organization." },
+    { name: "Year", critical: true, match: /\byear|\bdate/i, tip: null },
+    { name: "Main Steps", critical: true, match: /main.?step/i, tip: "Categories for various areas where greenhouse gas (GHG) emissions occur, and they help organizations systematically measure, report, and manage their emissions." },
+    { name: "Form Sections", critical: true, match: /form.?section/i, tip: "Form sections group related data in your report, such as sub sections, & their emission sources, ensuring a structured and consistent carbon report." },
+    { name: "Sub Sections", critical: true, match: /sub.?section/i, tip: "Represents a specific category of emissions within your carbon report, where activity data is entered. It helps structure your data based on emission sources like energy use, transportation, or purchased goods, ensuring accurate tracking and reporting." },
+    { name: "Description", match: /description|^name$/i, tip: "The name of the activity data" },
+    { name: "Particularity", match: /particular/i, tip: "Distinctions made for reports of same site for same year." },
+    { name: "Emission factor (EF) name", match: /emission factor|ef name/i, tip: "An Emission Factor (EF) converts activity data, like fuel or energy use, into greenhouse gas emissions for accurate carbon reporting." },
+    { name: "EF value", match: /ef value|^value/i, tip: "EF value represents the amount of greenhouse gas emissions associated with a specific activity or resource. It is expressed as emissions per unit of activity, such as kilograms of CO₂-equivalent per kWh of electricity used or per liter of fuel consumed. Emission factors help calculate and track the environmental impact of activities and are key to carbon accounting and sustainability reporting." },
+    { name: "Uncertainty", match: /uncertainty/i, tip: "Uncertainty represents the potential variability or inaccuracy in emission or activity data, reflecting limitations in measurement, estimation, or data quality." },
+    { name: "Comments", match: /comment/i, tip: "Remarks left, for an activity data" },
+    { name: "Extra column 1", tip: null },
+    { name: "Extra column 2", tip: null }
   ];
   const PLACEHOLDER = "Select an excel column";
+  const REQUIRED = FIELDS.filter(f => f.critical).length;
   let SETUP = {};
   try { SETUP = JSON.parse(sessionStorage.getItem("importSetup")) || {}; } catch (e) { /* storage unavailable: use defaults */ }
   const PATH = SETUP.path || "external";
   const TEMPLATE = SETUP.template || { name: "Template name", type: "Default", entity: "City", author: "Tapio", protocol: "Bilan carbone", method: "Location based" };
-  const state = { file: null, mapping: Object.fromEntries(FIELDS.map(f => [f.name, f.value || null])) };
+  const state = { file: null, mapping: Object.fromEntries(FIELDS.map(f => [f.name, null])) };
 
   const $ = s => document.querySelector(s);
   const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const isMapped = v => v && v !== "Do not include";
+  const isMapped = v => v && v !== DO_NOT_INCLUDE;
+  const list = names => names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  // Excel column -> platform fields using it ("Do not include" can be picked for any number of fields).
+  function usage() {
+    const used = new Map();
+    FIELDS.forEach(f => {
+      const v = state.mapping[f.name];
+      if (isMapped(v)) used.set(v, [...(used.get(v) || []), f.name]);
+    });
+    return used;
+  }
 
   /* ---------- Mapping table ---------- */
   const mappingEl = $("#mapping");
-  FIELDS.forEach((f, i) => {
+  const infoIcon = f => f.tip
+    ? `<button class="tip-trigger" data-tip="${esc(f.tip)}" aria-label="About ${esc(f.name)}"><img class="icon-16" src="assets/info-circle.svg" alt=""></button>`
+    : `<span class="static-ico" aria-hidden="true"><img class="icon-16" src="assets/info-circle.svg" alt=""></span>`;
+  FIELDS.forEach(f => {
     const row = document.createElement("div");
     row.className = "map-row";
     row.innerHTML = `
-      <div class="map-label">
-        <span class="name">${esc(f.name)}
-          <button class="tip-trigger" data-tip="${esc(f.tip)}" aria-label="About ${esc(f.name)}"><img class="icon-16" src="assets/info-circle.svg" alt=""></button>
-        </span>
-        ${f.critical ? `<span class="crit" data-crit="${esc(f.name)}"></span>` : ""}
-      </div>
-      <div class="map-arrow"><img class="icon-16" src="assets/arrow-narrow-right.svg" alt=""></div>
-      <div>
+      <div class="map-status"><button class="st-btn" data-status="${esc(f.name)}"><span class="st"></span></button></div>
+      <div class="map-select">
         <div class="select" data-field="${esc(f.name)}">
-          <button class="select-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Excel column for ${esc(f.name)}">
+          <button class="select-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Excel column for ${esc(f.name)}${f.critical ? " (required)" : ""}">
             <span class="select-value"></span>
-            <img class="icon-20" src="assets/chevron-down-dark.svg" alt="">
+            <img class="icon-16" src="assets/chevron-down-dark.svg" alt="">
           </button>
         </div>
-      </div>`;
+      </div>
+      <div class="map-arrow"><img class="icon-16" src="assets/arrow-narrow-right.svg" alt=""></div>
+      <div class="map-label"><div class="label-box"><span>${esc(f.name)}${f.critical ? "*" : ""}</span>${infoIcon(f)}</div></div>`;
     mappingEl.appendChild(row);
   });
 
+  function statusOf(f, used) {
+    const v = state.mapping[f.name];
+    const others = isMapped(v) ? used.get(v).filter(n => n !== f.name) : [];
+    if (others.length) return {
+      cls: "dup", label: "Duplicate mapping",
+      tip: `“${v}” is also mapped to ${list(others)}. Each Excel column should map to a single field, so check which one it belongs to.`
+    };
+    if (f.critical && !isMapped(v)) return {
+      cls: "red", label: "Mapping required",
+      tip: v === DO_NOT_INCLUDE
+        ? `${f.name} is required and can’t be excluded. Select the Excel column that holds it.`
+        : `Mapping required. Select the Excel column that holds the ${f.name.toLowerCase()}, without it your data can’t be imported.`
+    };
+    if (!v) return {
+      cls: "orange", label: "Not mapped (optional)",
+      tip: `Optional field. Map it if your file has this data, or choose “${DO_NOT_INCLUDE}”. Unmapped data won’t be imported.`
+    };
+    return {
+      cls: "green", label: "Mapped",
+      tip: v === DO_NOT_INCLUDE ? `${f.name} won’t be imported.` : `Mapped to “${v}”.`
+    };
+  }
+
   function render() {
-    document.querySelectorAll(".select").forEach(sel => {
-      const v = state.mapping[sel.dataset.field];
-      const btn = sel.querySelector(".select-btn");
+    const used = usage();
+    FIELDS.forEach(f => {
+      const v = state.mapping[f.name];
+      const s = statusOf(f, used);
+      const sel = $(`.select[data-field="${CSS.escape(f.name)}"]`), btn = sel.querySelector(".select-btn");
       btn.classList.toggle("filled", !!v);
+      btn.classList.toggle("excluded", v === DO_NOT_INCLUDE);
+      btn.classList.toggle("error", s.cls === "red");
+      btn.classList.toggle("dup", s.cls === "dup");
       sel.querySelector(".select-value").textContent = v || PLACEHOLDER;
+      btn.querySelector(".dup-tag")?.remove();
+      if (s.cls === "dup") btn.querySelector(".select-value").insertAdjacentHTML("afterend", `<span class="dup-tag">Duplicate</span>`);
+
+      const stBtn = $(`[data-status="${CSS.escape(f.name)}"]`);
+      stBtn.dataset.tip = s.tip;
+      stBtn.setAttribute("aria-label", `${f.name}: ${s.label}. ${s.tip}`);
+      const st = stBtn.firstElementChild;
+      st.className = "st " + s.cls;
+      st.innerHTML = s.cls === "red" || s.cls === "orange" ? `<img src="assets/${s.cls}-alert-mark.svg" alt="">` : "";
     });
-    document.querySelectorAll("[data-crit]").forEach(el => {
-      const ok = isMapped(state.mapping[el.dataset.crit]);
-      el.classList.toggle("ok", ok);
-      el.textContent = ok ? "Critical column mapped" : "Critical column";
-    });
-    const criticalDone = PATH !== "external" || FIELDS.filter(f => f.critical).every(f => isMapped(state.mapping[f.name]));
+
+    // Progress line under the section title
+    const done = FIELDS.filter(f => f.critical && isMapped(state.mapping[f.name])).length;
+    const p = $("#mapProgress");
+    p.classList.toggle("ok", done === REQUIRED);
+    p.textContent = done === REQUIRED ? "All required fields are mapped. Review the optional fields, then continue."
+      : done ? `${done} of ${REQUIRED} required fields mapped.` : `Map the ${REQUIRED} required fields to continue.`;
+
+    // Same Excel column feeding several platform fields
+    const dups = [...used].filter(([, fields]) => fields.length > 1);
+    const banner = $("#dupBanner");
+    banner.hidden = !dups.length;
+    banner.innerHTML = dups.length ? `<img class="icon-16" src="assets/warning-circle-amber.svg" alt="">
+      <div><p><b>${dups.length === 1 ? "An Excel column is" : `${dups.length} Excel columns are`} mapped to more than one field.</b> The same data would be imported into each of them.</p>
+      <ul>${dups.map(([col, fields]) => `<li>“${esc(col)}” → ${esc(list(fields))}</li>`).join("")}</ul></div>` : "";
+
+    const criticalDone = PATH !== "external" || done === REQUIRED;
     $("#uploadBtn").disabled = !(state.file && criticalDone);
   }
 
@@ -539,23 +683,33 @@
     openSelect.querySelector(".select-menu")?.remove();
     openSelect = null;
   }
+  const options = sel => [...sel.querySelectorAll('[role="option"]:not([hidden])')];
+  function setActive(sel, opt) {
+    sel.querySelector('[role="option"].active')?.classList.remove("active");
+    if (!opt) return;
+    opt.classList.add("active");
+    opt.scrollIntoView({ block: "nearest" });
+  }
   function openMenu(sel) {
     closeSelect();
     const field = sel.dataset.field;
+    const used = usage();
     const menu = document.createElement("div");
     menu.className = "select-menu";
     menu.setAttribute("role", "listbox");
-    menu.innerHTML = EXCEL_COLUMNS.map(c =>
-      `<div role="option" tabindex="-1" aria-selected="${state.mapping[field] === c}">${esc(c)}</div>`).join("");
+    menu.innerHTML = `<label class="menu-search"><img class="icon-16" src="assets/search.svg" alt=""><input type="text" placeholder="Search columns" aria-label="Search Excel columns"></label>` +
+      [DO_NOT_INCLUDE, ...EXCEL_COLUMNS].map(c => {
+        const by = (used.get(c) || []).filter(n => n !== field);
+        return `<div role="option" tabindex="-1" data-value="${esc(c)}" aria-selected="${state.mapping[field] === c}">
+          <span>${esc(c)}</span>${by.length ? `<span class="opt-used">Used by ${esc(list(by))}</span>` : ""}</div>`;
+      }).join("") + `<p class="opt-empty" hidden>No matching column</p>`;
     sel.appendChild(menu);
     const limit = Math.min(window.innerHeight, $(".footer").getBoundingClientRect().top);
-    if (sel.getBoundingClientRect().bottom + 300 > limit) menu.classList.add("up");
+    if (sel.getBoundingClientRect().bottom + 330 > limit) menu.classList.add("up");
     sel.classList.add("open");
     sel.querySelector(".select-btn").setAttribute("aria-expanded", "true");
     openSelect = sel;
-    const current = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
-    current.classList.add("active");
-    current.scrollIntoView({ block: "nearest" });
+    setActive(sel, menu.querySelector('[aria-selected="true"]') || options(sel)[0]);
   }
   function choose(sel, value) {
     state.mapping[sel.dataset.field] = value;
@@ -563,39 +717,68 @@
     render();
     sel.querySelector(".select-btn").focus();
   }
+  function filterMenu(sel, q) {
+    q = q.trim().toLowerCase();
+    sel.querySelectorAll('[role="option"]').forEach(o => { o.hidden = !!q && !o.dataset.value.toLowerCase().includes(q); });
+    sel.querySelector(".opt-empty").hidden = options(sel).length > 0;
+    setActive(sel, options(sel)[0]);
+  }
   mappingEl.addEventListener("click", e => {
     const opt = e.target.closest('[role="option"]');
-    if (opt) return choose(opt.closest(".select"), opt.textContent);
+    if (opt) return choose(opt.closest(".select"), opt.dataset.value);
     const btn = e.target.closest(".select-btn");
     if (btn) {
       const sel = btn.closest(".select");
       sel === openSelect ? closeSelect() : openMenu(sel);
     }
   });
+  mappingEl.addEventListener("input", e => {
+    if (e.target.closest(".menu-search")) filterMenu(e.target.closest(".select"), e.target.value);
+  });
   mappingEl.addEventListener("keydown", e => {
-    const btn = e.target.closest(".select-btn");
-    if (!btn) return;
-    const sel = btn.closest(".select");
+    const sel = e.target.closest(".select");
+    if (!sel) return;
     if (sel !== openSelect) {
       if (["ArrowDown", "ArrowUp"].includes(e.key)) { e.preventDefault(); openMenu(sel); }
       return;
     }
-    const opts = [...sel.querySelectorAll('[role="option"]')];
+    const opts = options(sel);
     let i = opts.findIndex(o => o.classList.contains("active"));
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
-      opts[i]?.classList.remove("active");
       i = Math.max(0, Math.min(opts.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)));
-      opts[i].classList.add("active");
-      opts[i].scrollIntoView({ block: "nearest" });
-    } else if (e.key === "Enter" || e.key === " ") {
+      setActive(sel, opts[i]);
+    } else if (e.key === "Enter" || (e.key === " " && !e.target.closest(".menu-search"))) {
       e.preventDefault();
-      choose(sel, opts[i].textContent);
-    } else if (e.key === "Escape" || e.key === "Tab") {
+      if (opts[i]) choose(sel, opts[i].dataset.value);
+    } else if (e.key === "Escape") {
       closeSelect();
+      sel.querySelector(".select-btn").focus();
+    } else if (e.key === "Tab") {
+      closeSelect();
+    } else if (e.key.length === 1 && !e.target.closest(".menu-search") && !e.metaKey && !e.ctrlKey) {
+      // Typing while the list is open jumps into the search field.
+      const input = sel.querySelector(".menu-search input");
+      input.focus();
     }
   });
   document.addEventListener("click", e => { if (openSelect && !openSelect.contains(e.target)) closeSelect(); });
+
+  // Auto-map: fill empty fields whose name matches an Excel column that isn't used yet.
+  $("#autoMap").addEventListener("click", () => {
+    const used = usage();
+    let count = 0;
+    FIELDS.forEach(f => {
+      if (state.mapping[f.name] || !f.match) return;
+      const col = EXCEL_COLUMNS.find(c => f.match.test(c) && !used.has(c));
+      if (!col) return;
+      state.mapping[f.name] = col;
+      used.set(col, [f.name]);
+      count++;
+    });
+    render();
+    toast(count ? `${count} column${count === 1 ? "" : "s"} mapped automatically. Please review.` : "No more columns could be matched automatically");
+  });
 
   /* ---------- Path chosen in Step 1 ---------- */
   // "external": map an external file | "download": download Tapio's structured file | "structured": already have one
@@ -603,16 +786,16 @@
     const t = SETUP.template;
     if (t) {
       $("#tName").textContent = t.name;
-      $("#tTags").innerHTML = [t.type, t.entity, t.author, t.protocol].map(v => `<span>${esc(v)}</span>`).join("");
+      $("#tMeta").textContent = [t.type, t.entity, t.author, t.protocol].join(" - ");
     }
-    if (PATH === "external") $("#templateTitle").textContent = "1. View details of your selected reference template";
-    $("#mappingPanel").hidden = PATH !== "external";
-    $("#downloadBtn").hidden = PATH !== "download";
-    if (PATH === "structured") {
-      $("#templateBlock").hidden = true;
-      $("#descValueNote").hidden = false;
-      $("#fillTitle").textContent = "1. Fill in the data manually and save";
-      $("#uploadTitle").textContent = "2. Upload file";
+    $("#mappingPanel").hidden = true;   // revealed once a file is uploaded (external path only)
+    $("#templateCard").hidden = PATH === "structured";
+    $("#descValueNote").hidden = PATH !== "structured";
+    if (PATH !== "external") {
+      $("#introTitle").textContent = "Upload your data";
+      $("#introDesc").textContent = PATH === "download"
+        ? "Download the structured file, fill it in with your data, then upload it here."
+        : "Upload your structured file. Data is only loaded here; it is imported in step 3.";
     }
   })();
 
@@ -633,11 +816,18 @@
     dropzone.hidden = !!file;
     $("#fileCard").hidden = !file;
     if (file) {
-      $("#fileName").textContent = file.name.replace(/\.[^.]+$/, "");
-      $("#fileSize").textContent = formatSize(file.size);
-      $("#fileFormat").textContent = file.name.split(".").pop().toUpperCase();
+      $("#fileName").textContent = file.name;
+      $("#fileMeta").textContent = `${file.name.split(".").pop().toUpperCase()} · ${formatSize(file.size)}`;
+      $("#uploadedNote").textContent = PATH === "external" ? "Your file is ready for column mapping." : "Your file is ready to be imported.";
+    } else {
+      // The mapped Excel columns belonged to the removed file, so start fresh.
+      FIELDS.forEach(f => { state.mapping[f.name] = null; });
     }
     fileInput.value = "";
+    // Column mapping only makes sense once there is a file whose columns can be matched.
+    const mapping = $("#mappingPanel");
+    mapping.hidden = PATH !== "external" || !file;
+    if (!mapping.hidden) mapping.scrollIntoView({ behavior: "smooth", block: "start" });
     render();
   }
   fileInput.addEventListener("change", () => setFile(fileInput.files[0]));
@@ -750,6 +940,7 @@
     if (xl.step === (withTags() ? 3 : 1)) {
       downloadTemplate();
       $("#excelModal").close();
+      toast("Template downloaded");
       return;
     }
     xl.step++;
@@ -771,8 +962,11 @@
   $("#uploadBtn").addEventListener("click", () => {
     if (PATH !== "external") return goToStep3();
     const unmapped = FIELDS.filter(f => !state.mapping[f.name]).map(f => f.name);
-    if (!unmapped.length) return goToStep3();
-    $("#unmappedList").innerHTML = unmapped.map(n => `<li>${esc(n)}</li>`).join("");
+    const dups = [...usage()].filter(([, fields]) => fields.length > 1);
+    if (!unmapped.length && !dups.length) return goToStep3();
+    $("#confirmLists").innerHTML =
+      (dups.length ? `<div class="dups"><h3>Excel columns mapped to more than one field</h3><ul>${dups.map(([c, f]) => `<li>“${esc(c)}” → ${esc(list(f))}</li>`).join("")}</ul></div>` : "") +
+      (unmapped.length ? `<div><h3>Fields not mapped: their data won’t be imported</h3><ul>${unmapped.map(n => `<li>${esc(n)}</li>`).join("")}</ul></div>` : "");
     $("#confirmModal").showModal();
   });
   $("#confirmImport").addEventListener("click", goToStep3);
@@ -781,6 +975,6 @@
 
   render();
 </script>
-<script src="shared.js?v=10"></script>
+<script src="shared.js?v=20"></script>
 </body>
 </html>

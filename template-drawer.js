@@ -24,20 +24,21 @@
   document.body.insertAdjacentHTML("beforeend", `
 <dialog class="drawer" id="templateDrawer" aria-labelledby="drawerTitle">
   <div class="drawer-head">
-    <button class="drawer-back" data-close><img class="icon-16" src="assets/arrow-narrow-left.svg" alt="">Return to import center</button>
-    <h2 id="drawerTitle">Template name</h2>
+    <div class="drawer-title">
+      <h2 id="drawerTitle">Template name</h2>
+      <button class="drawer-close" data-close aria-label="Close template details"><img src="assets/x-close.svg" alt=""></button>
+    </div>
     <p>Detail view of the selected template.</p>
   </div>
   <div class="drawer-body">
-    <section class="panel" id="generalPanel">
-      <h3 class="panel-title"><button class="collapse-btn" aria-expanded="true" aria-controls="infoBody">General information<img class="icon-20" src="assets/chevron-up.svg" alt=""></button></h3>
+    <section class="drawer-section" id="generalPanel">
+      <h3><button class="collapse-btn" aria-expanded="true" aria-controls="infoBody">General information<img class="icon-16" src="assets/ov-chevron-title.svg" alt=""></button></h3>
       <div class="info-body" id="infoBody">
         <div class="info-sub">
-          <h4>Basic information</h4>
           <dl class="info-items">
             <div><dt>Author</dt><dd id="dAuthor"></dd></div>
-            <div><dt>Entity:</dt><dd id="dEntity"></dd></div>
-            <div><dt>Reference protocol <span class="tip-trigger" tabindex="0" data-tip="Indicates the protocol on which the template is based, such as Bilan Carbone or GHG. Templates can be customized to fit specific reporting structures while still referencing these standard protocols." aria-label="About reference protocol"><img class="icon-16" src="assets/info-circle-overlay.svg" alt=""></span></dt><dd id="dProtocol"></dd></div>
+            <div><dt>Entity</dt><dd id="dEntity"></dd></div>
+            <div><dt>Reference protocol <span class="tip-trigger" tabindex="0" data-tip="Indicates the protocol on which the template is based, such as Bilan Carbone or GHG. Templates can be customized to fit specific reporting structures while still referencing these standard protocols." aria-label="About reference protocol"><img class="icon-16" src="assets/ov-info-circle.svg" alt=""></span></dt><dd id="dProtocol"></dd></div>
             <div><dt>Reporting method</dt><dd id="dMethod"></dd></div>
           </dl>
         </div>
@@ -48,14 +49,14 @@
       </div>
     </section>
 
-    <section class="panel">
-      <h3 class="panel-title">Report architecture</h3>
+    <section class="drawer-section">
+      <h3>Report architecture</h3>
       <div class="arch">
         <div class="arch-row arch-head">
           <div>Sections</div>
-          <div>LMB split <img class="icon-16" src="assets/help-circle-sm.svg" alt=""></div>
+          <div>LMB split <img class="icon-16" src="assets/ov-help-circle.svg" alt=""></div>
           <div>Operation</div>
-          <div>Excluded <img class="icon-16" src="assets/help-circle-sm.svg" alt=""></div>
+          <div>Excluded <img class="icon-16" src="assets/ov-help-circle.svg" alt=""></div>
         </div>
         <div id="archRows"></div>
       </div>
@@ -70,15 +71,15 @@
     ARCHITECTURE.forEach(cat => {
       const catOpen = expanded.has(cat.name);
       const toggle = cat.children
-        ? `<button class="arch-toggle" data-toggle="${esc(cat.name)}" aria-expanded="${catOpen}" aria-label="Toggle ${esc(cat.name)}"><img class="icon-16" src="assets/tree-chevron.svg" alt=""></button>`
-        : `<span class="arch-toggle static" aria-hidden="true"><img class="icon-16" src="assets/tree-chevron.svg" alt=""></span>`;
-      out.push(`<div class="arch-row lvl-0 ${catOpen ? "expanded" : ""}"><div>${toggle}<span class="arch-dot ${cat.large ? "lg" : ""}" style="background:${cat.color}"></span><span class="arch-name">${esc(cat.name)}</span></div><div>${check(cat.lmb)}</div><div>${check(true)}</div><div>${check(false)}</div></div>`);
+        ? `<button class="arch-toggle" data-toggle="${esc(cat.name)}" aria-expanded="${catOpen}" aria-label="Toggle ${esc(cat.name)}"><img class="icon-16" src="assets/ov-chevron.svg" alt=""></button>`
+        : `<span class="arch-toggle static" aria-hidden="true"><img class="icon-16" src="assets/ov-chevron.svg" alt=""></span>`;
+      out.push(`<div class="arch-row lvl-0 ${catOpen ? "expanded" : ""}"><div>${toggle}<span class="arch-dot ${cat.large ? "lg" : ""}" style="background:${cat.color}"></span><span class="arch-name">${esc(cat.name)}</span></div><div>${check(cat.lmb)}</div><div>${check(false)}</div><div>${check(false)}</div></div>`);
       if (!catOpen || !cat.children) return;
       cat.children.forEach(sub => {
         const key = `${cat.name}/${sub.name}`, subOpen = expanded.has(key);
-        out.push(`<div class="arch-row lvl-1 ${subOpen ? "expanded open-sub" : ""}"><div><button class="arch-toggle" data-toggle="${esc(key)}" aria-expanded="${subOpen}" aria-label="Toggle ${esc(sub.name)}"><img class="icon-16" src="assets/tree-chevron.svg" alt=""></button><span class="arch-name">${esc(sub.name)}</span></div><div>${check(cat.lmb)}</div><div>${check(true)}</div><div>${check(false)}</div></div>`);
+        out.push(`<div class="arch-row lvl-1 ${subOpen ? "expanded open-sub" : ""}"><div><button class="arch-toggle" data-toggle="${esc(key)}" aria-expanded="${subOpen}" aria-label="Toggle ${esc(sub.name)}"><img class="icon-16" src="assets/ov-chevron.svg" alt=""></button><span class="arch-name">${esc(sub.name)}</span></div><div>${check(cat.lmb)}</div><div>${check(false)}</div><div>${check(false)}</div></div>`);
         if (subOpen) sub.children.forEach(leaf =>
-          out.push(`<div class="arch-row lvl-2"><div><span class="arch-name">${esc(leaf)}</span></div><div>${check(cat.lmb)}</div><div>${check(true)}</div><div>${check(false)}</div></div>`));
+          out.push(`<div class="arch-row lvl-2"><div><span class="arch-name">${esc(leaf)}</span></div><div>${check(cat.lmb)}</div><div>${check(false)}</div><div>${check(false)}</div></div>`));
       });
     });
     $("#archRows").innerHTML = out.join("");
@@ -92,7 +93,7 @@
     $(`[data-toggle="${CSS.escape(k)}"]`)?.focus();
   });
   $(".collapse-btn").addEventListener("click", e => {
-    const panel = $("#generalPanel"), collapsed = panel.classList.toggle("collapsed");
+    const collapsed = $("#generalPanel").classList.toggle("collapsed");
     e.currentTarget.setAttribute("aria-expanded", !collapsed);
   });
   window.openTemplateDrawer = t => {
