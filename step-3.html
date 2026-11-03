@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Import center – Data verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css?v=20">
+<link rel="stylesheet" href="flow.css?v=20">
+<style>
+  :root { --tapio-green: #2d5c4f; --tapio-warning-fill: #fff7de; }
+
+  .warn-banner {
+    display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+    background: var(--tapio-warning-fill); border-radius: 8px; font-size: 14px; line-height: 20px;
+  }
+  .warn-banner b { font-weight: 500; }
+  .task-intro .warn-banner { margin-top: 12px; }
+  .task-intro .warn-banner p { font-size: 14px; line-height: 20px; color: var(--tapio-deep-indigo); }
+
+  /* Status icons */
+  .red-alert { position: relative; width: 16px; height: 16px; flex-shrink: 0; background: var(--tapio-red); border-radius: 16px; overflow: hidden; }
+  .red-alert img { position: absolute; left: 7px; top: 2.285px; width: 2px; height: 9.515px; }
+  .green-alert { width: 16px; height: 16px; flex-shrink: 0; border-radius: 16px; background: var(--tapio-green) url("assets/green-check.svg") center / 9.6px no-repeat; }
+  .field-ok {
+    width: 16px; height: 16px; flex-shrink: 0; border-radius: 16px; border: 1.5px solid var(--tapio-green); position: relative;
+  }
+  .field-ok::after {
+    content: ""; position: absolute; inset: 0; background: var(--tapio-green);
+    -webkit-mask: url("assets/green-check.svg") center / 8px no-repeat; mask: url("assets/green-check.svg") center / 8px no-repeat;
+  }
+
+  /* ---------- Verification panel ---------- */
+  .status-line { display: flex; align-items: center; gap: 8px; font: var(--ts-body); color: var(--act-ink); }
+  .status-line b { font-weight: 500; }
+  #results { display: flex; flex-direction: column; gap: 16px; }
+  .loading { display: flex; flex-direction: column; gap: 8px; font: var(--ts-body); color: #040811; }
+  .loading small { display: flex; align-items: center; gap: 4px; font: var(--ts-label); color: #4b5563; }
+  .loading small img { animation: spin 1.2s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #tableArea { display: flex; flex-direction: column; }
+  .tbl-filters .filter-btn span { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+
+  .v-scroll { overflow-x: auto; }
+  .v-table { width: 100%; min-width: 1040px; border-collapse: collapse; table-layout: fixed; }
+  .v-table th, .v-table td {
+    height: 64px; padding: 0 12px; border-bottom: 1px solid var(--act-gray-200);
+    font: var(--ts-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--act-ink);
+  }
+  .v-table th:last-child, .v-table td:last-child { border-right: 0; }
+  /* Headers align with their cells: text columns left, control columns (select, status, action) centred */
+  .v-table th, .v-table td { text-align: left; }
+  .v-table th:nth-child(-n+2), .v-table td:nth-child(-n+2),
+  .v-table th:last-child, .v-table td:last-child { text-align: center; }
+  .v-table td { background: #fff; }
+  .v-table tbody tr:last-child td { border-bottom: 0; }
+  .v-table tbody tr:hover td { background: #f9fafb; }
+  .v-table td.num { font: var(--ts-body-medium); }
+  .v-table .ico { display: flex; justify-content: center; }
+  .v-table .ico.start { justify-content: flex-start; }
+  .v-table tr.selected td { background: #f0f9ff; border-bottom-color: var(--sky-100); }
+  .v-table .checkbox { margin: 0 auto; }
+  .v-table .eye-btn {
+    width: 32px; height: 32px; padding: 8px; margin: 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 8px;
+  }
+  .v-table .eye-btn .on { display: none; }
+  .v-table .eye-btn:hover, .v-table .eye-btn.active { background: #f3f4f6; }
+  .v-empty td { text-align: center; color: var(--tapio-charcoal-blue); }
+  .page:disabled, .page-cta:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* Bulk selection bar */
+  .select-bar {
+    position: sticky; bottom: 72px; z-index: 30; display: flex; align-items: center; gap: 32px; padding: 15px 32px 16px;
+    background: var(--tapio-alice-blue); border-top: 1px solid var(--tapio-frost-gray);
+    box-shadow: 0 -1px 4px 0 rgba(0, 0, 0, 0.06), 0 -1px 0 0 rgba(0, 0, 0, 0.1);
+  }
+  .select-bar p { font-size: 14px; line-height: 20px; font-weight: 500; }
+  .select-bar .link { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--tapio-charcoal-blue); border-bottom: 1px solid var(--tapio-charcoal-blue); margin-top: 4px; }
+
+  /* ---------- Edit overlays ---------- */
+  dialog.drawer.edit { display: none; }
+  dialog.drawer.edit[open] { display: flex; flex-direction: column; overflow: hidden; }
+  .edit .drawer-head { position: static; flex-shrink: 0; }
+  .edit-nav { display: flex; align-items: center; justify-content: space-between; }
+  .pager { display: flex; }
+  .pager button {
+    width: 32px; height: 32px; padding: 8px; display: flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid var(--act-gray-200); box-shadow: var(--shadow-xs);
+  }
+  .pager button:hover:not(:disabled) { background: #f3f4f6; }
+  .pager button:first-child { border-radius: 8px 0 0 8px; }
+  .pager button:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
+  .pager button:disabled { opacity: .4; cursor: not-allowed; }
+  .edit-body { flex: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 16px; background: var(--tapio-white); }
+  .edit-body h3 { font: var(--ts-section-title); letter-spacing: var(--ls-section-title); color: var(--act-ink); }
+  .fields { display: flex; flex-direction: column; gap: 16px; }
+  .field label { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; font: var(--ts-body-medium); line-height: normal; color: #4b5563; }
+  .combo { position: relative; }
+  .combo-box {
+    display: flex; align-items: center; gap: 8px; padding: 0 8px; height: 40px;
+    background: #fff; border: 1px solid var(--act-gray-200); border-radius: 8px; box-shadow: var(--shadow-xs);
+  }
+  .combo-box:focus-within { border-color: var(--tapio-midnight-blue); }
+  .combo-box input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: var(--ts-body); color: var(--act-ink);
+  }
+  .combo-box input::placeholder { color: #4b5563; opacity: 1; }
+  .combo-box input[readonly] { cursor: pointer; }
+  .combo-box button { display: flex; }
+  .combo.open .combo-box button img { transform: rotate(180deg); }
+  .drawer-foot {
+    flex-shrink: 0; display: flex; justify-content: flex-end; gap: 16px; padding: 23px 32px 24px;
+    background: #fff; border-top: 1px solid var(--act-gray-200);
+  }
+
+  /* Missing-data confirmation list */
+  #missingModal ul { max-height: 50vh; overflow-y: auto; }
+  #missingModal .modal-body li::before { background: var(--tapio-deep-indigo); }
+
+  /* ---------- Import notification ---------- */
+  .notice {
+    position: fixed; top: 80px; right: 32px; z-index: 200; width: min(656px, calc(100vw - 32px));
+    display: flex; align-items: center; gap: 24px; padding: 20px 16px;
+    background: var(--tapio-white); border: 1px solid var(--tapio-frost-gray); border-radius: 8px;
+    box-shadow: var(--shadow-md); animation: notice-in .25s ease-out;
+  }
+  @keyframes notice-in { from { transform: translateY(-8px); opacity: 0; } }
+  .notice .msg { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 24px; }
+  .notice .msg img { width: 32px; height: 32px; border-radius: 32px; object-fit: cover; flex-shrink: 0; }
+  .notice a { font-weight: 500; color: var(--tapio-deep-indigo); }
+  .notice time { font-size: 16px; line-height: 24px; color: #4d5659; white-space: nowrap; }
+
+  @media (max-width: 768px) {
+    .warn-banner { align-items: flex-start; }
+    .warn-banner > img { margin-top: 2px; }
+    .status-line { align-items: flex-start; }
+    .status-line > span:first-child { margin-top: 4px; }
+    .edit-body { padding: 20px 16px; }
+    .drawer-foot { padding: 16px; }
+    .select-bar { padding: 12px 16px; gap: 16px; justify-content: space-between; }
+    .notice { right: 16px; top: 72px; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="nav-scrim"></div>
+  <aside class="nav">
+    <div>
+      <div class="nav-company">
+        <div class="nav-company-id">
+          <img src="assets/act-logo.png" alt="">
+          <span>Company name</span>
+        </div>
+        <button class="nav-dots" aria-label="More options"><img class="icon-16" src="assets/act-dots.svg" alt=""></button>
+      </div>
+      <div class="sep"></div>
+    </div>
+
+    <div class="nav-search-wrap">
+      <div class="nav-search">
+        <img class="icon-16" src="assets/act-search.svg" alt="">
+        <span>Switch companies</span>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="nav-body">
+      <nav class="nav-ctas">
+        <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/home.svg" alt="">Home</span></button>
+
+        <div>
+          <button class="nav-cta open">
+            <span class="lbl"><img class="icon-24 p2" src="assets/act-understand.svg" alt="">Understand</span>
+            <img class="icon-24 chev" src="assets/act-chev-a.svg" alt="">
+          </button>
+          <div class="nav-sub">
+            <a href="#">Project manager</a>
+            <a href="#" class="active">Data collection</a>
+            <a href="#">Data quality</a>
+            <a href="#">Report analysis</a>
+            <a href="#">Document center</a>
+          </div>
+        </div>
+
+        <button class="nav-cta">
+          <span class="lbl"><img class="icon-24" src="assets/act-act.svg" alt="">Act</span>
+          <img class="icon-24" src="assets/act-chev-a.svg" alt="">
+        </button>
+        <button class="nav-cta">
+          <span class="lbl"><img class="icon-24 p2" src="assets/act-engage.svg" alt="">Engage</span>
+          <img class="icon-24" src="assets/act-chev-a.svg" alt="">
+        </button>
+      </nav>
+
+      <div class="nav-bottom">
+        <div class="nav-bottom-links">
+          <div class="sep"></div>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-book.svg" alt="">User guide</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-microscope.svg" alt="">Our methodology</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-shield.svg" alt="">Privacy</span></button>
+          <button class="nav-cta"><span class="lbl"><img class="icon-24" src="assets/act-virus.svg" alt="">Report bug</span></button>
+        </div>
+        <button class="nav-collapse" aria-label="Collapse navigation"><img class="icon-16" src="assets/act-collapse.svg" alt=""></button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" aria-label="Open navigation"><img class="icon-16" src="assets/chevron-left-double.svg" alt=""></button>
+      <div class="crumbs">
+        <span>Home</span>
+        <img class="icon-20 chev" src="assets/act-crumb-chev.svg" alt="">
+        <strong>Import center</strong>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" aria-label="Hide"><img class="icon-16" src="assets/act-eye-off.svg" alt=""></button>
+        <button class="icon-btn" aria-label="Notifications"><img class="icon-16" src="assets/act-bell.svg" alt=""></button>
+        <button class="icon-btn" aria-label="Language"><img class="icon-16" src="assets/act-flag-fr.svg" alt=""></button>
+        <img class="avatar" src="assets/act-avatar.png" alt="User avatar">
+      </div>
+    </header>
+
+    <div class="container">
+      <nav class="flow-steps" aria-label="Import steps">
+        <ol>
+          <li class="flow-step done"><img class="icon-20" src="assets/step-check-teal.svg" alt="">1. Setup<span class="sr-only"> (completed)</span></li>
+          <li class="flow-chev" aria-hidden="true"><img class="icon-20" src="assets/step-chevron.svg" alt=""></li>
+          <li class="flow-step done"><img class="icon-20" src="assets/step-check-teal.svg" alt="">2. Upload file<span class="sr-only"> (completed)</span></li>
+          <li class="flow-chev" aria-hidden="true"><img class="icon-20" src="assets/step-chevron.svg" alt=""></li>
+          <li class="flow-step current" aria-current="step"><img class="icon-20" src="assets/step-circle-white.svg" alt="">3. Data verification</li>
+        </ol>
+      </nav>
+      <header class="task-intro">
+        <div class="ph-title"><h1>Import your data</h1><span class="ph-badge">Step 3 of 3</span></div>
+        <p>In this final step, review your data in the provided table, which highlights any activity data with missing critical information. Edit entries individually or in bulk to ensure all required fields are complete. Data with unresolved critical errors will not be imported.</p>
+        <div class="warn-banner">
+          <img class="icon-16" src="assets/warning-circle.svg" alt="">
+          <p>Data rows with non-critical errors will be imported,<b> but the fields containing errors will be left empty</b>. You can review, correct, and complete them in the report overview after the import.</p>
+        </div>
+      </header>
+
+      <section class="sec" id="verifyPanel">
+        <h2 class="sec-title">Critical data verification</h2>
+
+        <div class="loading" id="loading">
+          <p>Your data is being processed. If you have any data with critical information missing, they will be displayed in this table.</p>
+          <small><img class="icon-16" src="assets/loading.svg" alt="">Estimated time: 3 min</small>
+        </div>
+
+        <div id="results" hidden>
+          <div class="status-line" id="statusLine"></div>
+          <div id="tableArea">
+            <div class="tbl-toolbar"><div class="tbl-filters v-filters" id="filters"></div></div>
+            <div class="tbl-box">
+            <div class="v-scroll">
+              <table class="v-table">
+                <colgroup>
+                  <col style="width:52px"><col style="width:84px"><col style="width:72px"><col style="width:124px"><col style="width:72px">
+                  <col style="width:212px"><col style="width:150px"><col><col style="width:80px">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th><input type="checkbox" class="checkbox" id="selectPage" aria-label="Select all rows on this page"></th>
+                    <th>Status</th><th>Row</th><th>Site</th><th>Year</th><th>Main step</th><th>Form section</th><th>Sub section</th><th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+              </table>
+            </div>
+            <div class="pagination" id="pagination"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="select-bar" id="selectBar" hidden>
+      <div>
+        <p id="selectCount">0 Activity datas selected</p>
+        <button class="link" id="clearSelection">Clear selection</button>
+      </div>
+      <button class="cta" id="bulkEdit">Edit</button>
+    </div>
+    <footer class="footer">
+      <button class="cta neutral" id="cancelBtn">Cancel</button>
+      <div class="footer-right">
+        <button class="cta" onclick="location.href='step-2.html'">Back</button>
+        <button class="cta primary" id="completeBtn" disabled>Finalize import</button>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<!-- Single / multiple edit overlay -->
+<dialog class="drawer edit" id="editDrawer" aria-labelledby="editTitle">
+  <div class="drawer-head">
+    <div class="edit-nav">
+      <button class="drawer-back" data-close><img class="icon-16" src="assets/arrow-narrow-left.svg" alt="">Return to import finalization</button>
+      <div class="pager" id="pager">
+        <button id="prevRow" aria-label="Previous activity data"><img class="icon-16" src="assets/chevron-left-sm.svg" alt=""></button>
+        <button id="nextRow" aria-label="Next activity data"><img class="icon-16" src="assets/chevron-right-sm.svg" alt=""></button>
+      </div>
+    </div>
+    <h2 id="editTitle">Activity data name</h2>
+    <p id="editDesc"></p>
+  </div>
+  <div class="edit-body">
+    <h3>Critical data details</h3>
+    <div class="fields" id="fields"></div>
+  </div>
+  <div class="drawer-foot">
+    <button class="cta outline" id="resetEdit">Reset changes</button>
+    <button class="cta primary" id="saveEdit">Save changes</button>
+  </div>
+</dialog>
+
+<!-- Missing critical data confirmation -->
+<dialog class="modal" id="missingModal" aria-labelledby="missingTitle">
+  <div class="modal-inner">
+    <div class="modal-head">
+      <h2 id="missingTitle"></h2>
+      <button class="modal-close" data-close aria-label="Close"><img src="assets/x-close.svg" alt=""></button>
+    </div>
+    <div class="modal-body">
+      <p>Proceeding without correction will exclude them from the import.</p>
+      <ul id="missingList"></ul>
+    </div>
+    <div class="modal-foot">
+      <button class="cta" data-close>Cancel</button>
+      <button class="cta primary" id="confirmComplete">Finalize import</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Leave flow modal -->
+<dialog class="modal fixed" id="leaveModal" aria-labelledby="leaveTitle">
+  <div class="modal-inner">
+    <div class="modal-top">
+      <div class="modal-head">
+        <h2 id="leaveTitle">Leave import center ?</h2>
+        <button class="modal-close" data-close aria-label="Close"><img src="assets/x-close.svg" alt=""></button>
+      </div>
+      <div class="modal-body danger">
+        <p>Cancel your import? This action cannot be undone.</p>
+        <ul><li>Any progress made so far will be lost and your data won’t be imported</li></ul>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="cta" data-close>Return</button>
+      <button class="cta danger" id="confirmLeave">Leave import center</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  /* ---------- Reference data ---------- */
+  const SITES = ["Site name", "Paris HQ", "Lyon plant", "Marseille office", "Lille warehouse", "Bordeaux store"];
+  const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
+  const STRUCTURE = {
+    "Energy Consumption": {
+      "Fuel-on-site": ["Without control on sources", "With control on sources"],
+      "Cooling systems on site": ["Without control on sources", "With control on sources"],
+      "Green electricity on site": ["Without control on sources", "With control on sources"]
+    },
+    "Mobility": { "Business travel": ["Air travel", "Train travel"], "Commuting": ["Car", "Public transport"] },
+    "Logistics": { "Upstream freight": ["Road freight", "Sea freight"] },
+    "Waste": { "Waste on site": ["Landfill", "Recycling"] }
+  };
+  const FIELDS = [
+    { key: "site", label: "Site name", options: () => SITES, placeholder: "Type or select a site name" },
+    { key: "year", label: "Year", options: () => YEARS, placeholder: "Type or select a year" },
+    { key: "particularity", label: "Particularity", options: () => YEARS, placeholder: "Type or select a particularity" },
+    { key: "step", label: "Main steps", options: () => Object.keys(STRUCTURE), placeholder: "Type or select a main step" },
+    { key: "form", label: "Form section", options: v => v.step && STRUCTURE[v.step] ? Object.keys(STRUCTURE[v.step]) : [...new Set(Object.values(STRUCTURE).flatMap(Object.keys))], placeholder: "Type or select a form section" },
+    { key: "sub", label: "Sub Section", options: v => {
+        const forms = v.step && STRUCTURE[v.step] ? [STRUCTURE[v.step]] : Object.values(STRUCTURE);
+        return [...new Set(forms.flatMap(f => v.form && f[v.form] ? f[v.form] : v.form ? [] : Object.values(f).flat()))];
+      }, placeholder: "Select a sub section", selectOnly: true }
+  ];
+  const CRITICAL = ["site", "year", "step", "form", "sub"];
+
+  /* ---------- Imported rows (mock) ---------- */
+  const TOTAL = 240;
+  const FAULTY = [3, 4, 8, 10, 6, 24, 38, 56, 87, 95, 102, 115, 121, 133, 148, 160, 172, 189, 201, 230];
+  const scenario = new URLSearchParams(location.search).get("scenario");
+  const makeRow = n => ({ n, site: SITES[n % SITES.length], year: YEARS[2 + (n % 4)], particularity: YEARS[2 + (n % 4)], step: "Energy Consumption", form: "Fuel-on-site", sub: "Without control on sources" });
+  let ROWS = [];
+  function buildRows() {
+    const faulty = scenario === "clean" ? [] : FAULTY;
+    const rows = Array.from({ length: TOTAL }, (_, i) => makeRow(i + 1));
+    faulty.forEach(n => {
+      const r = rows[n - 1];
+      r.site = null;
+      if (n === 95) Object.assign(r, { year: null, step: null, form: null, sub: null });
+    });
+    // Rows with missing critical data are listed first, in the order the import reported them.
+    ROWS = faulty.map(n => rows[n - 1]).concat(rows.filter(r => !faulty.includes(r.n)));
+  }
+  const isMissing = r => CRITICAL.some(k => !r[k]);
+  const missingRows = () => ROWS.filter(isMissing);
+
+  /* ---------- Table state ---------- */
+  const PAGE_SIZE = 10;
+  const state = { page: 1, filters: {}, selected: new Set(), editing: null };
+  const FILTERS = [
+    { key: "status", label: "Status", values: () => ["Missing critical data", "Complete"] },
+    { key: "year", label: "Year", values: () => YEARS },
+    { key: "step", label: "Main Step", values: () => Object.keys(STRUCTURE) },
+    { key: "form", label: "Form Section", values: () => [...new Set(Object.values(STRUCTURE).flatMap(Object.keys))] },
+    { key: "sub", label: "Sub Section", values: () => [...new Set(Object.values(STRUCTURE).flatMap(f => Object.values(f).flat()))] }
+  ];
+  function visibleRows() {
+    return ROWS.filter(r => FILTERS.every(f => {
+      const v = state.filters[f.key];
+      if (!v) return true;
+      if (f.key === "status") return (v === "Complete") !== isMissing(r);
+      return r[f.key] === v;
+    }));
+  }
+
+  const missingIcon = '<span class="ico start"><img class="icon-16" src="assets/alert-circle.svg" alt="Missing"></span>';
+  const cell = (v, cls = "") => v ? `<td class="${cls}">${esc(v)}</td>` : `<td>${missingIcon}</td>`;
+
+  function renderStatus() {
+    const missing = missingRows().length;
+    $("#statusLine").innerHTML = missing
+      ? `<span class="red-alert"><img src="assets/red-alert-mark.svg" alt=""></span><span><b>${missing}/${TOTAL}</b>&nbsp; Activity data(s) require their critical info to be filled in or these won’t be imported</span>`
+      : `<span class="green-alert"></span><span><b>${TOTAL}/${TOTAL}</b>&nbsp; Activity data(s) will be imported without any critical values missing.</span>`;
+  }
+
+  function renderTable() {
+    const rows = visibleRows();
+    const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    state.page = Math.min(state.page, pages);
+    const slice = rows.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
+    $("#rows").innerHTML = slice.length ? slice.map(r => `
+      <tr data-n="${r.n}" class="${state.selected.has(r.n) ? "selected" : ""}">
+        <td><input type="checkbox" class="checkbox" ${state.selected.has(r.n) ? "checked" : ""} aria-label="Select row ${r.n}"></td>
+        <td><span class="ico">${isMissing(r) ? '<span class="red-alert" role="img" aria-label="Missing critical data"><img src="assets/red-alert-mark.svg" alt=""></span>' : '<span class="green-alert" role="img" aria-label="Complete"></span>'}</span></td>
+        <td class="num">#${r.n}</td>
+        ${cell(r.site)}${cell(r.year)}${cell(r.step)}${cell(r.form)}${cell(r.sub)}
+        <td><button class="eye-btn ${state.editing === r.n ? "active" : ""}" data-edit="${r.n}" aria-label="Edit row ${r.n}">
+          <img class="icon-16 off" src="assets/eye-dark.svg" alt=""><img class="icon-16 on" src="assets/eye-light.svg" alt=""></button></td>
+      </tr>`).join("") : `<tr class="v-empty"><td colspan="9">No activity data matches these filters.</td></tr>`;
+    const pageNums = slice.map(r => r.n);
+    const allOnPage = pageNums.length && pageNums.every(n => state.selected.has(n));
+    $("#selectPage").checked = !!allOnPage;
+    $("#selectPage").indeterminate = !allOnPage && pageNums.some(n => state.selected.has(n));
+    renderPagination(pages);
+    renderSelectBar();
+  }
+
+  function pageList(pages, cur) {
+    if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
+    const set = new Set([1, 2, 3, pages - 2, pages - 1, pages, cur - 1, cur, cur + 1].filter(p => p >= 1 && p <= pages));
+    const sorted = [...set].sort((a, b) => a - b), out = [];
+    sorted.forEach((p, i) => { if (i && p - sorted[i - 1] > 1) out.push("…"); out.push(p); });
+    return out;
+  }
+  function renderPagination(pages) {
+    $("#pagination").innerHTML = `
+      <button class="page-cta prev" data-page="${state.page - 1}" ${state.page === 1 ? "disabled" : ""} aria-label="Previous page"><img class="icon-16" src="assets/pg-arrow.svg" alt=""></button>
+      <div class="pages">${pageList(pages, state.page).map(p => p === "…" ? '<span class="page">...</span>'
+        : `<button class="page ${p === state.page ? "active" : ""}" data-page="${p}" ${p === state.page ? 'aria-current="page"' : ""}>${p}</button>`).join("")}</div>
+      <button class="page-cta next" data-page="${state.page + 1}" ${state.page === pages ? "disabled" : ""} aria-label="Next page"><img class="icon-16" src="assets/pg-arrow.svg" alt=""></button>`;
+  }
+  $("#pagination").addEventListener("click", e => {
+    const b = e.target.closest("[data-page]");
+    if (!b || b.disabled) return;
+    state.page = +b.dataset.page;
+    renderTable();
+  });
+
+  /* ---------- Selection ---------- */
+  function renderSelectBar() {
+    const n = state.selected.size;
+    $("#selectBar").hidden = !n;
+    $("#selectCount").textContent = `${n} Activity data${n === 1 ? "" : "s"} selected`;
+  }
+  $("#rows").addEventListener("change", e => {
+    if (!e.target.matches(".checkbox")) return;
+    const n = +e.target.closest("tr").dataset.n;
+    e.target.checked ? state.selected.add(n) : state.selected.delete(n);
+    renderTable();
+  });
+  $("#selectPage").addEventListener("change", e => {
+    $("#rows").querySelectorAll("tr[data-n]").forEach(tr => {
+      const n = +tr.dataset.n;
+      e.target.checked ? state.selected.add(n) : state.selected.delete(n);
+    });
+    renderTable();
+  });
+  $("#clearSelection").addEventListener("click", () => { state.selected.clear(); renderTable(); });
+
+  /* ---------- Filters ---------- */
+  let openFilter = null;
+  $("#filters").innerHTML = FILTERS.map(f => `
+    <div class="filter" data-key="${f.key}">
+      <button class="filter-btn" aria-haspopup="listbox" aria-expanded="false"><span>${f.label}</span><img class="icon-20" src="assets/chevron-down.svg" alt=""></button>
+    </div>`).join("");
+  function closeFilter() {
+    if (!openFilter) return;
+    openFilter.classList.remove("open");
+    openFilter.querySelector(".filter-btn").setAttribute("aria-expanded", "false");
+    openFilter.querySelector(".select-menu")?.remove();
+    openFilter = null;
+  }
+  $("#filters").addEventListener("click", e => {
+    const f = e.target.closest(".filter");
+    if (!f) return;
+    const def = FILTERS.find(x => x.key === f.dataset.key);
+    const opt = e.target.closest('[role="option"]');
+    if (opt) {
+      state.filters[def.key] = opt.dataset.value || null;
+      const btn = f.querySelector(".filter-btn");
+      btn.classList.toggle("set", !!state.filters[def.key]);
+      btn.firstElementChild.textContent = state.filters[def.key] || def.label;
+      closeFilter();
+      state.page = 1;
+      renderTable();
+      return;
+    }
+    if (f === openFilter) return closeFilter();
+    closeFilter();
+    const menu = document.createElement("div");
+    menu.className = "select-menu";
+    menu.setAttribute("role", "listbox");
+    menu.innerHTML = [`<div role="option" data-value="" aria-selected="${!state.filters[def.key]}">All</div>`]
+      .concat(def.values().map(v => `<div role="option" data-value="${esc(v)}" aria-selected="${state.filters[def.key] === v}">${esc(v)}</div>`)).join("");
+    f.appendChild(menu);
+    f.classList.add("open");
+    f.querySelector(".filter-btn").setAttribute("aria-expanded", "true");
+    openFilter = f;
+  });
+
+  /* ---------- Edit overlay (single row or bulk) ---------- */
+  const SINGLE_DESC = "Use this overlay to fill in the missing critical information for a single activity. Complete the required fields using dropdowns and text inputs to ensure the activity can be successfully imported.";
+  const BULK_DESC = "Update missing critical information for multiple activity data entries at once. Choices made in dropdowns and text inputs will apply to all selected entries, overriding any existing values in the affected fields (e.g., updating the year will replace original values for all selected entries).";
+  const edit = { mode: null, row: null, values: {} };
+  const drawer = $("#editDrawer");
+
+  function openEdit(mode, n) {
+    edit.mode = mode;
+    edit.row = n ?? null;
+    const r = mode === "single" ? ROWS.find(x => x.n === n) : null;
+    edit.values = Object.fromEntries(FIELDS.map(f => [f.key, r ? r[f.key] || "" : ""]));
+    $("#editTitle").textContent = mode === "single" ? `Activity data #${n}` : "Edit multiple selection";
+    $("#editDesc").textContent = mode === "single" ? SINGLE_DESC : BULK_DESC;
+    $("#pager").hidden = mode !== "single";
+    state.editing = mode === "single" ? n : null;
+    renderFields();
+    renderPager();
+    renderTable();
+    if (!drawer.open) drawer.showModal();
+  }
+  function renderPager() {
+    if (edit.mode !== "single") return;
+    const list = visibleRows(), i = list.findIndex(r => r.n === edit.row);
+    $("#prevRow").disabled = i <= 0;
+    $("#nextRow").disabled = i === -1 || i >= list.length - 1;
+  }
+  function stepRow(dir) {
+    const list = visibleRows(), i = list.findIndex(r => r.n === edit.row);
+    const next = list[i + dir];
+    if (!next) return;
+    state.page = Math.floor((i + dir) / PAGE_SIZE) + 1;
+    openEdit("single", next.n);
+  }
+  $("#prevRow").addEventListener("click", () => stepRow(-1));
+  $("#nextRow").addEventListener("click", () => stepRow(1));
+
+  function statusIcon(f) {
+    if (edit.mode !== "single" || f.key === "particularity" && !edit.values[f.key]) return "";
+    return edit.values[f.key]
+      ? '<span class="field-ok" role="img" aria-label="Filled"></span>'
+      : '<img class="icon-16" src="assets/field-missing.svg" alt="Missing">';
+  }
+  function renderFields() {
+    $("#fields").innerHTML = FIELDS.map(f => `
+      <div class="field" data-key="${f.key}">
+        <label for="f-${f.key}">${esc(f.label)} ${statusIcon(f)}</label>
+        <div class="combo">
+          <div class="combo-box">
+            <input id="f-${f.key}" autocomplete="off" value="${esc(edit.values[f.key])}" placeholder="${esc(f.placeholder)}" ${f.selectOnly ? "readonly" : ""}
+              role="combobox" aria-expanded="false" aria-autocomplete="list">
+            <button type="button" tabindex="-1" aria-label="Show options"><img class="icon-20" src="assets/chevron-down-dark.svg" alt=""></button>
+          </div>
+        </div>
+      </div>`).join("");
+  }
+  function refreshStatusIcons() {
+    FIELDS.forEach(f => {
+      const label = $(`.field[data-key="${f.key}"] label`);
+      label.innerHTML = `${esc(f.label)} ${statusIcon(f)}`;
+    });
+  }
+
+  let openCombo = null;
+  function closeCombo() {
+    if (!openCombo) return;
+    openCombo.classList.remove("open");
+    openCombo.querySelector("input").setAttribute("aria-expanded", "false");
+    openCombo.querySelector(".select-menu")?.remove();
+    openCombo = null;
+  }
+  function showCombo(combo, filterText) {
+    if (openCombo && openCombo !== combo) closeCombo();
+    const key = combo.closest(".field").dataset.key, f = FIELDS.find(x => x.key === key);
+    const q = (filterText || "").toLowerCase();
+    const opts = f.options(edit.values).filter(o => !q || o.toLowerCase().includes(q));
+    let menu = combo.querySelector(".select-menu");
+    if (!menu) {
+      menu = document.createElement("div");
+      menu.className = "select-menu";
+      menu.setAttribute("role", "listbox");
+      combo.appendChild(menu);
+    }
+    menu.innerHTML = opts.length
+      ? opts.map(o => `<div role="option" data-value="${esc(o)}" aria-selected="${edit.values[key] === o}">${esc(o)}</div>`).join("")
+      : `<div role="option" aria-disabled="true" style="cursor:default;color:var(--tapio-charcoal-blue)">${f.selectOnly ? "Select a form section first" : "Press Enter to use this value"}</div>`;
+    const room = $(".edit-body").getBoundingClientRect().bottom - combo.getBoundingClientRect().bottom;
+    menu.classList.toggle("up", room < 240);
+    combo.classList.add("open");
+    combo.querySelector("input").setAttribute("aria-expanded", "true");
+    openCombo = combo;
+  }
+  function setValue(key, value) {
+    edit.values[key] = value;
+    // Keep the section hierarchy consistent when a parent value changes.
+    if (key === "step" && edit.values.form && !FIELDS[4].options(edit.values).includes(edit.values.form)) edit.values.form = "";
+    if ((key === "step" || key === "form") && edit.values.sub && !FIELDS[5].options(edit.values).includes(edit.values.sub)) edit.values.sub = "";
+    FIELDS.forEach(f => { $(`#f-${f.key}`).value = edit.values[f.key]; });
+    refreshStatusIcons();
+  }
+  $("#fields").addEventListener("click", e => {
+    const combo = e.target.closest(".combo");
+    if (!combo) return;
+    const opt = e.target.closest('[role="option"][data-value]');
+    if (opt) {
+      setValue(combo.closest(".field").dataset.key, opt.dataset.value);
+      closeCombo();
+      return;
+    }
+    if (e.target.closest(".combo-box button") || e.target.matches("input[readonly]")) {
+      openCombo === combo ? closeCombo() : showCombo(combo);
+      combo.querySelector("input").focus();
+    }
+  });
+  $("#fields").addEventListener("focusin", e => { if (e.target.matches("input:not([readonly])")) showCombo(e.target.closest(".combo"), ""); });
+  $("#fields").addEventListener("input", e => {
+    const key = e.target.closest(".field").dataset.key;
+    edit.values[key] = e.target.value.trim();
+    refreshStatusIcons();
+    showCombo(e.target.closest(".combo"), e.target.value);
+  });
+  $("#fields").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); closeCombo(); }
+    if (e.key === "Escape" && openCombo) { e.preventDefault(); e.stopPropagation(); closeCombo(); }
+  });
+  document.addEventListener("click", e => {
+    if (openCombo && !openCombo.contains(e.target)) closeCombo();
+    if (openFilter && !openFilter.contains(e.target)) closeFilter();
+  });
+
+  $("#resetEdit").addEventListener("click", () => openEdit(edit.mode, edit.row));
+  $("#saveEdit").addEventListener("click", () => {
+    const vals = Object.fromEntries(Object.entries(edit.values).map(([k, v]) => [k, v.trim() || null]));
+    if (edit.mode === "single") {
+      Object.assign(ROWS.find(r => r.n === edit.row), vals);
+    } else {
+      ROWS.filter(r => state.selected.has(r.n)).forEach(r => {
+        Object.entries(vals).forEach(([k, v]) => { if (v) r[k] = v; });
+      });
+      state.selected.clear();
+    }
+    drawer.close();
+    renderAll();
+    toast("Changes saved");
+  });
+  $("#bulkEdit").addEventListener("click", () => openEdit("bulk"));
+  $("#rows").addEventListener("click", e => {
+    const b = e.target.closest("[data-edit]");
+    if (b) openEdit("single", +b.dataset.edit);
+  });
+  // The row whose overlay is open keeps its eye button active; clear it once the overlay closes.
+  new MutationObserver(() => {
+    if (!drawer.open && state.editing !== null) { state.editing = null; closeCombo(); renderTable(); }
+  }).observe(drawer, { attributes: true, attributeFilter: ["open"] });
+
+  /* ---------- Completion ---------- */
+  function renderAll() {
+    renderStatus();
+    // A file with no missing critical data needs no table (compact success state).
+    $("#tableArea").hidden = scenario === "clean";
+    renderTable();
+  }
+  function importFileName() {
+    try { return sessionStorage.getItem("importFileName") || "File_name"; } catch (e) { return "File_name"; }
+  }
+  function completeImport() {
+    $("#missingModal").close();
+    $("#completeBtn").disabled = true;
+    document.querySelector(".notice")?.remove();
+    const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    document.body.insertAdjacentHTML("beforeend", `
+      <div class="notice" role="status">
+        <div class="msg"><img src="assets/avatar.png" alt=""><p>“${esc(importFileName())}” data has been imported. <a href="#">See import details.</a></p></div>
+        <time>${esc(time)}</time>
+      </div>`);
+  }
+  $("#completeBtn").addEventListener("click", () => {
+    const missing = missingRows();
+    if (!missing.length) return completeImport();
+    $("#missingTitle").textContent = `${missing.length} Activity Data${missing.length === 1 ? " is" : "s are"} missing critical data`;
+    $("#missingList").innerHTML = missing.map(r => `<li>Row ${r.n}</li>`).join("");
+    $("#missingModal").showModal();
+  });
+  $("#confirmComplete").addEventListener("click", completeImport);
+  $("#cancelBtn").addEventListener("click", () => $("#leaveModal").showModal());
+  $("#confirmLeave").addEventListener("click", () => location.reload());
+
+  /* ---------- Processing ---------- */
+  buildRows();
+  setTimeout(() => {
+    $("#loading").hidden = true;
+    $("#results").hidden = false;
+    $("#completeBtn").disabled = false;
+    renderAll();
+  }, 2500);
+</script>
+<script src="shared.js?v=20"></script>
+</body>
+</html>

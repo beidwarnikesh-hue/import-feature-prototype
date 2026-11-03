@@ -957,7 +957,7 @@
   /* ---------- Modals ---------- */
   const goToStep3 = () => {
     try { sessionStorage.setItem("importFileName", state.file ? state.file.name.replace(/\.[^.]+$/, "") : "File_name"); } catch (e) { /* storage unavailable */ }
-    location.href = "index.html";
+    location.href = "step-3.html";
   };
   $("#uploadBtn").addEventListener("click", () => {
     if (PATH !== "external") return goToStep3();
